@@ -1,0 +1,1142 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>클래스 정의서 — 클래스/시퀀스/ERD 다이어그램</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Noto+Sans+KR:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink:#0f1117; --ink-2:#2d3142; --ink-3:#4a4f6a; --ink-4:#8b91b0;
+  --rule:#dde0ee; --surface:#f5f6fb; --surface-2:#eceef8;
+  --accent:#1a3fcc; --accent-2:#0f2899; --accent-light:#e8edff;
+  --teal:#0a7a6e; --teal-light:#e0f4f2;
+  --purple:#5c35c9; --purple-light:#eeebff;
+  --coral:#c0392b; --coral-light:#fdf0ec;
+  --paper:#ffffff;
+  --bar-h:52px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:auto;}
+body{font-family:'Noto Sans KR',sans-serif;background:var(--surface);color:var(--ink);-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+
+/* DOC HEADER */
+.doc-header{max-width:1200px;margin:0 auto;padding:44px 48px 28px;border-bottom:1.5px solid var(--ink);}
+.doc-label{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);background:var(--accent-light);padding:3px 10px;border-radius:3px;display:inline-block;margin-bottom:14px;}
+.doc-title{font-family:'DM Serif Display',serif;font-size:36px;font-weight:400;color:var(--ink);letter-spacing:-.3px;margin-bottom:5px;}
+.doc-sub{font-size:15px;color:var(--ink-3);font-weight:300;}
+.doc-meta{display:flex;gap:32px;margin-top:18px;flex-wrap:wrap;}
+.doc-meta-item{display:flex;flex-direction:column;gap:2px;}
+.doc-meta-label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-4);}
+.doc-meta-value{font-size:14px;font-weight:500;color:var(--ink-2);}
+
+/* PROGRESS BAR */
+#progress-bar{position:sticky;top:0;z-index:200;background:var(--paper);border-bottom:1px solid var(--rule);height:var(--bar-h);display:flex;align-items:center;padding:0 48px;}
+.prog-track{display:flex;align-items:center;width:100%;max-width:1200px;margin:0 auto;}
+.prog-step{display:flex;align-items:center;flex:1;cursor:pointer;min-width:0;}
+.prog-step:last-child{flex:0;}
+.prog-dot-wrap{display:flex;flex-direction:column;align-items:center;gap:3px;}
+.prog-dot{width:8px;height:8px;border-radius:50%;background:var(--rule);border:1.5px solid var(--rule);transition:all .3s ease;flex-shrink:0;}
+.prog-label{font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.04em;color:var(--ink-4);white-space:nowrap;transition:all .3s ease;text-align:center;line-height:1.25;}
+.prog-line{flex:1;height:1.5px;background:var(--rule);transition:background .4s ease;margin:0 3px 12px;min-width:6px;}
+.prog-step.done .prog-dot{background:var(--accent);border-color:var(--accent);}
+.prog-step.done .prog-label{color:var(--ink-3);}
+.prog-step.done+.prog-line{background:var(--accent);}
+.prog-step.active .prog-dot{background:var(--accent);border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-light);transform:scale(1.35);}
+.prog-step.active .prog-label{color:var(--accent);font-weight:600;}
+.prog-step.alt-step.active .prog-dot{background:var(--coral);border-color:var(--coral);box-shadow:0 0 0 3px var(--coral-light);}
+.prog-step.alt-step.active .prog-label{color:var(--coral);}
+.prog-step.alt-step.done .prog-dot{background:var(--coral);border-color:var(--coral);}
+.prog-step.alt-step.done+.prog-line{background:var(--coral);}
+
+/* SECTION TITLE BAR */
+.section-title-bar{background:var(--paper);border-bottom:1px solid var(--rule);padding:18px 48px 16px;}
+.section-num{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-4);letter-spacing:.1em;display:block;margin-bottom:4px;}
+.section-name{font-family:'DM Serif Display',serif;font-size:24px;color:var(--ink);letter-spacing:-.2px;}
+
+/* ═══ CLASS DIAGRAM SECTION ═══ */
+#section-class{background:var(--paper);}
+.class-diagram-outer{overflow-x:auto;padding:32px 48px 60px;max-width:100%;}
+.class-diagram-outer svg{display:block;min-width:1020px;}
+
+/* ═══ SEQ SECTION — scroll-pin layout ═══ */
+#section-seq{background:var(--surface);}
+
+/* Scroll-pin: outer wrapper scrollable, inner viewer fixed */
+.seq-scroll-pin-outer{
+  position:relative;
+}
+
+.seq-fixed-viewer{
+  position:sticky;
+  top:var(--bar-h);
+  height:calc(100vh - var(--bar-h));
+  display:grid;
+  grid-template-rows:auto 1fr auto;
+  background:var(--paper);
+  border-top:1px solid var(--rule);
+  overflow:hidden;
+  z-index:10;
+}
+
+/* Step title inside viewer */
+.seq-step-title{
+  padding:11px 40px;
+  border-bottom:1px solid var(--rule);
+  display:flex;align-items:center;gap:14px;
+  background:var(--paper);flex-shrink:0;
+}
+.step-badge{font-family:'JetBrains Mono',monospace;font-size:10px;padding:3px 10px;border-radius:3px;letter-spacing:.1em;font-weight:500;white-space:nowrap;flex-shrink:0;}
+.badge-fe{background:var(--accent-light);color:var(--accent-2);}
+.badge-be{background:var(--teal-light);color:var(--teal);}
+.badge-db{background:var(--purple-light);color:var(--purple);}
+.badge-alt{background:var(--coral-light);color:var(--coral);}
+.badge-sys,.badge-full,.badge-erd{background:var(--surface-2);color:var(--ink-3);}
+.seq-step-name{font-size:15px;font-weight:600;color:var(--ink);flex-shrink:0;}
+.seq-step-desc{font-size:13px;color:var(--ink-3);line-height:1.5;}
+
+/* Two-col content */
+.seq-content{display:grid;grid-template-columns:268px 1fr;overflow:hidden;min-height:0;}
+
+/* Left flow panel */
+.seq-flow-panel{border-right:1px solid var(--rule);background:var(--surface);padding:18px 16px;overflow-y:auto;display:flex;flex-direction:column;}
+.flow-panel-title{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-4);margin-bottom:12px;flex-shrink:0;}
+.flow-item{display:flex;gap:10px;align-items:flex-start;padding:7px 10px;border-radius:5px;border:1px solid transparent;transition:all .22s ease;margin-bottom:4px;}
+.flow-item.active{background:var(--accent-light);border-color:rgba(26,63,204,.2);}
+.flow-item.active.alt-col{background:var(--coral-light);border-color:rgba(192,57,43,.2);}
+.flow-item.done{opacity:.38;}
+.flow-idx{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--paper);background:var(--ink-4);border-radius:3px;padding:1px 6px;flex-shrink:0;margin-top:2px;transition:background .22s;}
+.flow-item.active .flow-idx{background:var(--accent);}
+.flow-item.active.alt-col .flow-idx{background:var(--coral);}
+.flow-text{font-size:12px;color:var(--ink-3);line-height:1.5;transition:color .22s;}
+.flow-item.active .flow-text{color:var(--ink);font-weight:500;}
+
+/* Right SVG panel */
+.seq-svg-panel{position:relative;overflow:hidden;padding:16px 32px 0;background:var(--paper);}
+#main-svg{width:100%;height:100%;position:absolute;top:0;left:0;overflow:visible;}
+
+/* Nav bar */
+.seq-nav-bar{border-top:1px solid var(--rule);height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 40px;background:var(--paper);flex-shrink:0;}
+.nav-hint{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-4);display:flex;align-items:center;gap:5px;}
+.key-badge{display:inline-flex;align-items:center;justify-content:center;background:var(--surface-2);border:1px solid var(--rule);border-radius:4px;padding:1px 7px;font-size:11px;color:var(--ink-3);font-family:'JetBrains Mono',monospace;}
+.nav-btn-group{display:flex;gap:7px;align-items:center;}
+.nav-btn{width:36px;height:36px;border-radius:6px;border:1px solid var(--rule);background:var(--paper);color:var(--ink-2);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .16s ease;user-select:none;}
+.nav-btn:hover{background:var(--surface-2);border-color:var(--accent);color:var(--accent);}
+.nav-btn:active{transform:scale(.94);}
+.nav-btn:disabled{opacity:.28;cursor:not-allowed;}
+.nav-progress-text{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--ink-4);padding:0 4px;}
+
+/* Scroll spacer — needs to be very tall so sticky viewport lasts through all steps */
+.seq-scroll-spacer{height:600vh;}
+
+/* FULL / ERD SECTIONS */
+.full-section{background:var(--paper);padding:0 48px 60px;scroll-margin-top:var(--bar-h);border-top:1px solid var(--rule);}
+.full-section-inner{max-width:1200px;margin:0 auto;padding-top:32px;}
+.full-section h3{font-family:'DM Serif Display',serif;font-size:22px;font-weight:400;color:var(--ink);margin-bottom:6px;}
+.full-section p{font-size:14px;color:var(--ink-3);margin-bottom:20px;}
+.full-seq-svg-wrap{border:1px solid var(--rule);border-radius:6px;overflow-x:auto;padding:16px;background:var(--paper);}
+
+/* ERD section */
+#section-erd{background:var(--surface);}
+.erd-svg-wrap{border:1px solid var(--rule);border-radius:8px;overflow-x:auto;background:var(--paper);padding:24px;}
+
+/* SVG draw animations */
+@keyframes drawLine{from{stroke-dashoffset:var(--len);}to{stroke-dashoffset:0;}}
+@keyframes drawPath{from{stroke-dashoffset:var(--plen);}to{stroke-dashoffset:0;}}
+.draw-line{stroke-dasharray:var(--len);stroke-dashoffset:var(--len);}
+.draw-line.go{animation:drawLine .3s ease-out forwards;}
+.draw-path{stroke-dasharray:var(--plen);stroke-dashoffset:var(--plen);}
+.draw-path.go{animation:drawPath .36s ease-out forwards;}
+.seq-evt{opacity:0;}
+</style>
+</head>
+<body>
+
+<!-- DOC HEADER -->
+<div class="doc-header">
+  <div class="doc-label">Section 04 — 클래스 정의서</div>
+  <h1 class="doc-title">클래스 다이어그램 · 시퀀스 다이어그램 · ERD</h1>
+  <p class="doc-sub">디지털 트윈 미술관 플랫폼 / 테마 기반 작품 재배치 시스템</p>
+  <div class="doc-meta">
+    <div class="doc-meta-item"><span class="doc-meta-label">프로젝트</span><span class="doc-meta-value">캡스톤디자인 11조 Dopamine팀</span></div>
+    <div class="doc-meta-item"><span class="doc-meta-label">작성일</span><span class="doc-meta-value">2026-04-09</span></div>
+    <!-- <div class="doc-meta-item"><span class="doc-meta-label">버전</span><span class="doc-meta-value">2.0</span></div> -->
+  </div>
+</div>
+
+<!-- PROGRESS BAR -->
+<div id="progress-bar"><div class="prog-track" id="prog-track"></div></div>
+
+<!-- ══ SECTION 0: CLASS DIAGRAM ══ -->
+<div id="section-class" style="scroll-margin-top:var(--bar-h);">
+  <div class="section-title-bar" id="cls-title-bar">
+    <span class="section-num">3-3</span>
+    <span class="section-name">클래스 다이어그램</span>
+  </div>
+  <div class="class-diagram-outer">
+<svg viewBox="0 0 1140 780" xmlns="http://www.w3.org/2000/svg"
+     style="font-family:'Noto Sans KR','JetBrains Mono',sans-serif;width:100%;height:auto;">
+<defs>
+  <marker id="dep" viewBox="0 0 10 10" refX="9" refY="5"
+          markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+    <path d="M1 1L9 5L1 9" fill="none" stroke="context-stroke"
+          stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+  </marker>
+  <marker id="inh" viewBox="0 0 12 12" refX="10" refY="6"
+          markerWidth="10" markerHeight="10" orient="auto-start-reverse">
+    <path d="M1 1L10 6L1 11Z" fill="white" stroke="context-stroke" stroke-width="1.4"/>
+  </marker>
+  <marker id="comp" viewBox="0 0 14 10" refX="1" refY="5"
+          markerWidth="12" markerHeight="10" orient="auto">
+    <path d="M1 5L7 1L13 5L7 9Z" fill="context-stroke"/>
+  </marker>
+</defs>
+
+<!-- ── Layer background bands ── -->
+<text x="22" y="22" font-size="9.5" fill="#8b91b0" font-family="JetBrains Mono,monospace" letter-spacing="0.12em">FRONTEND</text>
+<rect x="10" y="30" width="390" height="420" rx="8" fill="#e8edff" opacity="0.30"/>
+
+<text x="420" y="22" font-size="9.5" fill="#8b91b0" font-family="JetBrains Mono,monospace" letter-spacing="0.12em">BACKEND / MODEL</text>
+<rect x="412" y="30" width="718" height="420" rx="8" fill="#e0f4f2" opacity="0.30"/>
+
+<text x="22" y="478" font-size="9.5" fill="#8b91b0" font-family="JetBrains Mono,monospace" letter-spacing="0.12em">DB LAYER</text>
+<rect x="10" y="484" width="280" height="140" rx="8" fill="#eeebff" opacity="0.30"/>
+
+<!-- ══════════════════ CLASSES ══════════════════ -->
+
+<!-- ── SelectionFront ── -->
+<rect x="30" y="46" width="220" height="108" rx="4" fill="white" stroke="#185fa5" stroke-width="1.3"/>
+<rect x="30" y="46" width="220" height="28" rx="4" fill="#e6f1fb" stroke="#185fa5" stroke-width="1.3"/>
+<text x="140" y="65" text-anchor="middle" font-size="12" font-weight="600" fill="#0c447c">SelectionFront</text>
+<line x1="30" y1="74" x2="250" y2="74" stroke="#dde0ee" stroke-width="1"/>
+<text x="42" y="90" font-size="10.5" fill="#2d3142">+int themaView</text>
+<line x1="30" y1="100" x2="250" y2="100" stroke="#dde0ee" stroke-width="1"/>
+<text x="42" y="116" font-size="10.5" fill="#2d3142">+setThemaView(value: int)</text>
+<text x="42" y="132" font-size="10.5" fill="#2d3142">+handleViewSelect()</text>
+
+<!-- ── ThemaFront ── -->
+<rect x="30" y="208" width="220" height="148" rx="4" fill="white" stroke="#185fa5" stroke-width="1.3"/>
+<rect x="30" y="208" width="220" height="28" rx="4" fill="#e6f1fb" stroke="#185fa5" stroke-width="1.3"/>
+<text x="140" y="227" text-anchor="middle" font-size="12" font-weight="600" fill="#0c447c">ThemaFront</text>
+<line x1="30" y1="236" x2="250" y2="236" stroke="#dde0ee" stroke-width="1"/>
+<text x="42" y="252" font-size="10.5" fill="#2d3142">+string selectedTheme</text>
+<text x="42" y="268" font-size="10.5" fill="#2d3142">+string selectedEra</text>
+<text x="42" y="284" font-size="10.5" fill="#2d3142">+float emotionIntensity</text>
+<line x1="30" y1="294" x2="250" y2="294" stroke="#dde0ee" stroke-width="1"/>
+<text x="42" y="310" font-size="10.5" fill="#2d3142">+handleClick(option)</text>
+<text x="42" y="326" font-size="10.5" fill="#2d3142">+handleSubmit()</text>
+<text x="42" y="342" font-size="10.5" fill="#2d3142">+getButtonStyle()</text>
+
+<!-- ── FastAPI_Backend ── -->
+<rect x="430" y="46" width="220" height="148" rx="4" fill="white" stroke="#0f6e56" stroke-width="1.3"/>
+<rect x="430" y="46" width="220" height="28" rx="4" fill="#e0f4f2" stroke="#0f6e56" stroke-width="1.3"/>
+<text x="540" y="65" text-anchor="middle" font-size="12" font-weight="600" fill="#085041">FastAPI_Backend</text>
+<line x1="430" y1="74" x2="650" y2="74" stroke="#dde0ee" stroke-width="1"/>
+<text x="442" y="90" font-size="10.5" fill="#2d3142">+string host</text>
+<text x="442" y="106" font-size="10.5" fill="#2d3142">+int port</text>
+<text x="442" y="122" fill="#2d3142" font-size="10.5">+List&lt;str&gt; allowed_origins</text>
+<line x1="430" y1="132" x2="650" y2="132" stroke="#dde0ee" stroke-width="1"/>
+<text x="442" y="148" font-size="10.5" fill="#2d3142">+select_theme(UserChoice)</text>
+<text x="442" y="164" font-size="10.5" fill="#2d3142">+add_middleware(CORS)</text>
+<text x="442" y="180" font-size="10.5" fill="#2d3142">+serialize_response()</text>
+
+<!-- ── UserChoice ── -->
+<rect x="430" y="248" width="220" height="126" rx="4" fill="white" stroke="#0f6e56" stroke-width="1.3"/>
+<rect x="430" y="248" width="220" height="46" rx="4" fill="#e0f4f2" stroke="#0f6e56" stroke-width="1.3"/>
+<text x="540" y="265" text-anchor="middle" font-size="9.5" fill="#085041" font-style="italic">&lt;&lt;Pydantic BaseModel&gt;&gt;</text>
+<text x="540" y="281" text-anchor="middle" font-size="12" font-weight="600" fill="#085041">UserChoice</text>
+<line x1="430" y1="294" x2="650" y2="294" stroke="#dde0ee" stroke-width="1"/>
+<text x="442" y="311" font-size="10.5" fill="#2d3142">+string theme</text>
+<text x="442" y="327" font-size="10.5" fill="#2d3142">+string era</text>
+<text x="442" y="343" font-size="10.5" fill="#2d3142">+float emotion_intensity</text>
+<line x1="430" y1="352" x2="650" y2="352" stroke="#dde0ee" stroke-width="1"/>
+
+<!-- ── CurationService / Artwork ── -->
+<rect x="680" y="46" width="220" height="180" rx="4" fill="white" stroke="#0f6e56" stroke-width="1.3"/>
+<rect x="680" y="46" width="220" height="28" rx="4" fill="#e0f4f2" stroke="#0f6e56" stroke-width="1.3"/>
+<text x="790" y="65" text-anchor="middle" font-size="12" font-weight="600" fill="#085041">CurationService</text>
+<line x1="680" y1="74" x2="900" y2="74" stroke="#dde0ee" stroke-width="1"/>
+<text x="692" y="92" font-size="10.5" fill="#2d3142">+Dict THEMA_X_MAP</text>
+<text x="692" y="108" font-size="10.5" fill="#2d3142">+float user_x</text>
+<text x="692" y="124" font-size="10.5" fill="#2d3142">+float user_y</text>
+<line x1="680" y1="134" x2="900" y2="134" stroke="#dde0ee" stroke-width="1"/>
+<text x="692" y="150" font-size="10.5" fill="#2d3142">+curate_artworks(choice)</text>
+<text x="692" y="166" font-size="10.5" fill="#2d3142">+get_emotion_y(intensity)</text>
+<text x="692" y="182" font-size="10.5" fill="#2d3142">+calculate_match_score()</text>
+<text x="692" y="198" font-size="10.5" fill="#2d3142">+calculate_vector_dist()</text>
+<text x="692" y="214" font-size="10.5" fill="#2d3142">+sort_artworks()</text>
+
+<!-- ── Artwork ── -->
+<rect x="680" y="280" width="220" height="160" rx="4" fill="white" stroke="#0f6e56" stroke-width="1.3"/>
+<rect x="680" y="280" width="220" height="28" rx="4" fill="#e0f4f2" stroke="#0f6e56" stroke-width="1.3"/>
+<text x="790" y="299" text-anchor="middle" font-size="12" font-weight="600" fill="#085041">Artwork</text>
+<line x1="680" y1="308" x2="900" y2="308" stroke="#dde0ee" stroke-width="1"/>
+<text x="692" y="325" font-size="10.5" fill="#2d3142">+int id</text>
+<text x="692" y="341" font-size="10.5" fill="#2d3142">+string title</text>
+<text x="692" y="357" font-size="10.5" fill="#2d3142">+string thema, era, emotion</text>
+<text x="692" y="373" font-size="10.5" fill="#2d3142">+int era_year</text>
+<text x="692" y="389" font-size="10.5" fill="#2d3142">+float emotion_intensity</text>
+<line x1="680" y1="398" x2="900" y2="398" stroke="#dde0ee" stroke-width="1"/>
+<text x="692" y="414" font-size="10.5" fill="#2d3142">+String asset_folder_name</text>
+
+<!-- ── ArtworkResponse ── -->
+<rect x="920" y="280" width="210" height="130" rx="4" fill="white" stroke="#0f6e56" stroke-width="1.3"/>
+<rect x="920" y="280" width="210" height="46" rx="4" fill="#e0f4f2" stroke="#0f6e56" stroke-width="1.3"/>
+<text x="1025" y="296" text-anchor="middle" font-size="9.5" fill="#085041" font-style="italic">&lt;&lt;Pydantic BaseModel&gt;&gt;</text>
+<text x="1025" y="313" text-anchor="middle" font-size="12" font-weight="600" fill="#085041">ArtworkResponse</text>
+<line x1="920" y1="326" x2="1130" y2="326" stroke="#dde0ee" stroke-width="1"/>
+<text x="932" y="343" font-size="10.5" fill="#2d3142">+int id</text>
+<text x="932" y="359" font-size="10.5" fill="#2d3142">+String title</text>
+<text x="932" y="375" font-size="10.5" fill="#2d3142">+Dict files</text>
+<line x1="920" y1="382" x2="1130" y2="382" stroke="#dde0ee" stroke-width="1"/>
+
+<!-- ── RecommendationResponse ── -->
+<rect x="920" y="480" width="210" height="90" rx="4" fill="white" stroke="#0f6e56" stroke-width="1.3"/>
+<rect x="920" y="480" width="210" height="46" rx="4" fill="#e0f4f2" stroke="#0f6e56" stroke-width="1.3"/>
+<text x="1025" y="496" text-anchor="middle" font-size="9.5" fill="#085041" font-style="italic">&lt;&lt;Pydantic BaseModel&gt;&gt;</text>
+<text x="1025" y="513" text-anchor="middle" font-size="12" font-weight="600" fill="#085041">RecommendationResponse</text>
+<line x1="920" y1="526" x2="1130" y2="526" stroke="#dde0ee" stroke-width="1"/>
+<text x="932" y="543" font-size="10.5" fill="#2d3142">+List&lt;ArtworkResponse&gt; final_artworks</text>
+<line x1="920" y1="552" x2="1130" y2="552" stroke="#dde0ee" stroke-width="1"/>
+
+<!-- ── PostgreSQL_DB ── -->
+<rect x="30" y="500" width="254" height="108" rx="4" fill="white" stroke="#534ab7" stroke-width="1.3"/>
+<rect x="30" y="500" width="254" height="28" rx="4" fill="#eeebff" stroke="#534ab7" stroke-width="1.3"/>
+<text x="157" y="519" text-anchor="middle" font-size="12" font-weight="600" fill="#3c3489">PostgreSQL_DB</text>
+<line x1="30" y1="550" x2="284" y2="550" stroke="#dde0ee" stroke-width="1"/>
+<text x="42" y="538" font-size="10.5" fill="#2d3142">+asyncpg.connect(database, host)</text>
+<text x="42" y="565" font-size="10.5" fill="#2d3142">+execute_query(SELECT) : List&lt;Artwork&gt;</text>
+<line x1="30" y1="574" x2="284" y2="574" stroke="#dde0ee" stroke-width="1"/>
+<text x="42" y="590" font-size="10.5" fill="#2d3142">+save_layout(ids)</text>
+<text x="42" y="606" font-size="10.5" fill="#2d3142">+log_theme_history()</text>
+
+<!-- ══════════════════ RELATIONSHIPS ══════════════════ -->
+
+<!-- 1. SelectionFront → ThemaFront : Context API (dependency, dashed) -->
+<line x1="140" y1="154" x2="140" y2="206" stroke="#185fa5" stroke-width="1.3" stroke-dasharray="5 3" marker-end="url(#dep)"/>
+<text x="146" y="184" font-size="10" fill="#185fa5">Context API (themaView)</text>
+
+<!-- 2. ThemaFront → FastAPI_Backend : HTTP POST (dependency, dashed) -->
+<path d="M252 280 Q360 280 360 120 L428 120"
+      fill="none" stroke="#0f6e56" stroke-width="1.3" stroke-dasharray="5 3" marker-end="url(#dep)"/>
+<text x="270" y="273" font-size="10" fill="#0f6e56">HTTP POST /api/... (JSON)</text>
+
+<!-- 3. FastAPI_Backend → UserChoice : 수신 및 파싱 -->
+<line x1="540" y1="194" x2="540" y2="246" stroke="#0f6e56" stroke-width="1.3" stroke-dasharray="5 3" marker-end="url(#dep)"/>
+<text x="546" y="225" font-size="9.5" fill="#0f6e56">수신 및 파싱</text>
+
+<!-- 4. FastAPI_Backend → CurationService : 호출 -->
+<line x1="650" y1="120" x2="678" y2="120" stroke="#0f6e56" stroke-width="1.3" stroke-dasharray="5 3" marker-end="url(#dep)"/>
+<text x="654" y="114" font-size="9.5" fill="#0f6e56">호출</text>
+
+<!-- 5. FastAPI_Backend → ArtworkResponse : 응답 생성 -->
+<path d="M650 160 Q1025 160 1025 278"
+      fill="none" stroke="#0f6e56" stroke-width="1.3" stroke-dasharray="5 3" marker-end="url(#dep)"/>
+<text x="810" y="154" font-size="9.5" fill="#0f6e56">응답 생성</text>
+
+<!-- 6. FastAPI_Backend → RecommendationResponse : 반환 -->
+<path d="M650 168 Q1128 168 1128 478"
+      fill="none" stroke="#0f6e56" stroke-width="1.3" marker-end="url(#dep)"/>
+<text x="970" y="162" font-size="9.5" fill="#0f6e56">반환</text>
+
+<!-- 7. RecommendationResponse ◆── ArtworkResponse : Composition -->
+<line x1="1025" y1="480" x2="1025" y2="412" stroke="#0f6e56" stroke-width="1.3" marker-start="url(#comp)"/>
+<text x="1031" y="450" font-size="10" fill="#0f6e56">포함 (Composition)</text>
+
+<!-- 8. CurationService → Artwork : 정렬 및 처리 -->
+<line x1="790" y1="226" x2="790" y2="278" stroke="#0f6e56" stroke-width="1.3" stroke-dasharray="5 3" marker-end="url(#dep)"/>
+<text x="796" y="256" font-size="9.5" fill="#0f6e56">정렬 및 처리</text>
+
+<!-- 9. FastAPI_Backend ↔ PostgreSQL_DB : TCP/IP asyncpg -->
+<path d="M157 608 L157 700 Q157 720 200 720 L430 720 Q430 700 430 194 L428 194"
+      fill="none" stroke="#534ab7" stroke-width="1.3" stroke-dasharray="5 3" marker-end="url(#dep)"/>
+<text x="36" y="660" font-size="10" fill="#534ab7">TCP/IP 연결 (asyncpg)</text>
+
+<!-- 10. PostgreSQL_DB → Artwork : 쿼리 결과 반환 -->
+<line x1="284" y1="560" x2="678" y2="360" stroke="#534ab7" stroke-width="1.3" stroke-dasharray="5 3" marker-end="url(#dep)"/>
+<text x="420" y="445" font-size="9.5" fill="#534ab7">쿼리 결과 반환</text>
+
+<!-- ══════════════════ LEGEND ══════════════════ -->
+<g transform="translate(660,620)">
+  <rect x="0" y="0" width="460" height="104" rx="5" fill="#f5f6fb" stroke="#dde0ee" stroke-width="0.9"/>
+  <text x="12" y="20" font-size="10" fill="#0f1117" font-weight="600" font-family="JetBrains Mono,monospace">관계 범례</text>
+  <line x1="12" y1="40" x2="62" y2="40" stroke="#4a4f6a" stroke-width="1.3" stroke-dasharray="5 3" marker-end="url(#dep)"/>
+  <text x="70" y="44" font-size="10" fill="#4a4f6a">의존 / 호출 (Dependency, dashed)</text>
+  <line x1="12" y1="64" x2="62" y2="64" stroke="#4a4f6a" stroke-width="1.3" marker-start="url(#comp)"/>
+  <text x="70" y="68" font-size="10" fill="#4a4f6a">포함 (Composition) ◆ = 포함하는 쪽</text>
+  <line x1="12" y1="88" x2="62" y2="88" stroke="#4a4f6a" stroke-width="1.3" marker-end="url(#inh)"/>
+  <text x="70" y="92" font-size="10" fill="#4a4f6a">상속 (Inheritance) ▷ = 부모 쪽</text>
+</g>
+</svg>
+  </div>
+</div>
+
+<!-- ══ SECTION B: SEQUENCE DIAGRAM ══ -->
+<div id="section-seq" style="scroll-margin-top:var(--bar-h);">
+  <div class="section-title-bar" id="seq-title-bar">
+    <span class="section-num">4</span>
+    <span class="section-name">시퀀스 다이어그램</span>
+  </div>
+
+  <!-- scroll-pin wrapper: sticky viewer + spacer -->
+  <div class="seq-scroll-pin-outer" id="seq-pin-outer">
+    <div class="seq-fixed-viewer" id="seq-viewer">
+      <!-- Step title -->
+      <div class="seq-step-title">
+        <span class="step-badge badge-sys" id="step-badge">INTRO</span>
+        <span class="seq-step-name" id="step-name">시스템 개요</span>
+        <span class="seq-step-desc" id="step-desc">7개 액터의 역할과 전체 데이터 흐름을 확인합니다.</span>
+      </div>
+
+      <!-- Content: left panel + right SVG -->
+      <div class="seq-content">
+        <div class="seq-flow-panel" id="flow-panel">
+          <div class="flow-panel-title">순차 흐름</div>
+          <div id="flow-items"></div>
+        </div>
+        <div class="seq-svg-panel">
+          <svg id="main-svg" viewBox="0 0 680 500" xmlns="http://www.w3.org/2000/svg"
+               style="font-family:'Noto Sans KR',sans-serif;width:100%;height:100%;position:absolute;top:0;left:0;"></svg>
+        </div>
+      </div>
+
+      <!-- Nav bar -->
+      <div class="seq-nav-bar">
+        <div class="nav-hint">
+          <span class="key-badge">←</span><span class="key-badge">→</span>&nbsp;이전/다음 이벤트
+          &nbsp;|&nbsp;<span class="key-badge">Shift+→</span>&nbsp;다음 단계
+          &nbsp;|&nbsp;<span class="key-badge">↓</span>&nbsp;스크롤로 이동
+        </div>
+        <div class="nav-btn-group">
+          <button class="nav-btn" id="btn-ps" title="이전 단계">«</button>
+          <button class="nav-btn" id="btn-pe" title="이전 이벤트">‹</button>
+          <span class="nav-progress-text" id="nav-prog">1 / 8</span>
+          <button class="nav-btn" id="btn-ne" title="다음 이벤트">›</button>
+          <button class="nav-btn" id="btn-ns" title="다음 단계">»</button>
+        </div>
+        <div class="nav-hint">총 <strong id="total-s" style="margin:0 3px;"></strong> 단계</div>
+      </div>
+    </div>
+    <!-- spacer: page can be scrolled while viewer is sticky -->
+    <div class="seq-scroll-spacer"></div>
+  </div>
+</div>
+
+<!-- ══ FULL SEQ ══ -->
+<div id="section-fullseq" class="full-section" style="scroll-margin-top:var(--bar-h);">
+  <div class="full-section-inner">
+    <h3>시퀀스 다이어그램 — 전체 흐름</h3>
+    <p>STEP 1~6 및 ALT Fallback을 포함한 전체 시퀀스를 확인합니다.</p>
+    <div class="full-seq-svg-wrap" id="full-seq-wrap"></div>
+  </div>
+</div>
+
+<!-- ══ ERD ══ -->
+<div id="section-erd" class="full-section" style="scroll-margin-top:var(--bar-h);background:var(--surface);">
+  <div class="full-section-inner">
+    <h3>ER Diagram — 데이터 구조</h3>
+    <p>6개 테이블의 컬럼·타입·키 및 관계를 표현합니다. PK = Primary Key, FK = Foreign Key</p>
+    <div class="erd-svg-wrap">
+      <svg viewBox="0 0 1060 740" xmlns="http://www.w3.org/2000/svg"
+           style="font-family:'Noto Sans KR','JetBrains Mono',sans-serif;width:100%;height:auto;">
+      <defs>
+        <marker id="erd-arr" viewBox="0 0 10 10" refX="9" refY="5"
+                markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round"/>
+        </marker>
+        <marker id="erd-many" viewBox="0 0 14 10" refX="2" refY="5"
+                markerWidth="10" markerHeight="8" orient="auto">
+          <line x1="2" y1="1" x2="2" y2="9" stroke="context-stroke" stroke-width="1.4"/>
+          <path d="M2 5L12 1M2 5L12 9" fill="none" stroke="context-stroke" stroke-width="1.4" stroke-linecap="round"/>
+        </marker>
+        <marker id="erd-one" viewBox="0 0 10 10" refX="2" refY="5"
+                markerWidth="8" markerHeight="8" orient="auto">
+          <line x1="2" y1="1" x2="2" y2="9" stroke="context-stroke" stroke-width="1.4"/>
+        </marker>
+      </defs>
+
+      <!-- ── USERS table ── -->
+      <g id="erd-users">
+        <rect x="20" y="20" width="220" height="178" rx="5" fill="white" stroke="#185fa5" stroke-width="1.5"/>
+        <rect x="20" y="20" width="220" height="32" rx="5" fill="#e6f1fb" stroke="#185fa5" stroke-width="1.5"/>
+        <text x="130" y="41" text-anchor="middle" font-size="13" font-weight="700" fill="#0c447c" font-family="JetBrains Mono,monospace">USERS</text>
+        <!-- rows -->
+        <line x1="20" y1="52" x2="240" y2="52" stroke="#dde0ee"/>
+        <rect x="22" y="54" width="216" height="20" rx="2" fill="#fff9e6"/>
+        <text x="30" y="68" font-size="10" fill="#b36f00" font-family="JetBrains Mono,monospace">PK</text>
+        <text x="60" y="68" font-size="10.5" fill="#2d3142">user_id</text>
+        <text x="180" y="68" font-size="10" fill="#8b91b0" font-family="JetBrains Mono,monospace">INT</text>
+        <line x1="20" y1="74" x2="240" y2="74" stroke="#f0f0f8"/>
+        <text x="60" y="90" font-size="10.5" fill="#2d3142">provider</text>
+        <text x="176" y="90" font-size="10" fill="#8b91b0" font-family="JetBrains Mono,monospace">VARCHAR</text>
+        <line x1="20" y1="96" x2="240" y2="96" stroke="#f0f0f8"/>
+        <text x="60" y="112" font-size="10.5" fill="#2d3142">email</text>
+        <text x="176" y="112" font-size="10" fill="#8b91b0" font-family="JetBrains Mono,monospace">VARCHAR</text>
+        <line x1="20" y1="118" x2="240" y2="118" stroke="#f0f0f8"/>
+        <text x="60" y="134" font-size="10.5" fill="#2d3142">password_hash</text>
+        <text x="176" y="134" font-size="10" fill="#8b91b0" font-family="JetBrains Mono,monospace">VARCHAR</text>
+        <line x1="20" y1="140" x2="240" y2="140" stroke="#f0f0f8"/>
+        <text x="60" y="156" font-size="10.5" fill="#2d3142">created_at</text>
+        <text x="164" y="156" font-size="10" fill="#8b91b0" font-family="JetBrains Mono,monospace">TIMESTAMP</text>
+        <line x1="20" y1="162" x2="240" y2="162" stroke="#f0f0f8"/>
+        <text x="60" y="178" font-size="10.5" fill="#2d3142">updated_at</text>
+        <text x="164" y="178" font-size="10" fill="#8b91b0" font-family="JetBrains Mono,monospace">TIMESTAMP</text>
+      </g>
+
+      <!-- ── ARTWORKS table ── -->
+      <g id="erd-artworks">
+        <rect x="400" y="20" width="230" height="222" rx="5" fill="white" stroke="#0f6e56" stroke-width="1.5"/>
+        <rect x="400" y="20" width="230" height="32" rx="5" fill="#e0f4f2" stroke="#0f6e56" stroke-width="1.5"/>
+        <text x="515" y="41" text-anchor="middle" font-size="13" font-weight="700" fill="#085041" font-family="JetBrains Mono,monospace">ARTWORKS</text>
+        <line x1="400" y1="52" x2="630" y2="52" stroke="#dde0ee"/>
+        <rect x="402" y="54" width="226" height="20" rx="2" fill="#fff9e6"/>
+        <text x="410" y="68" font-size="10" fill="#b36f00" font-family="JetBrains Mono,monospace">PK</text>
+        <text x="440" y="68" font-size="10.5" fill="#2d3142">id</text>
+        <text x="585" y="68" font-size="10" fill="#8b91b0" font-family="JetBrains Mono,monospace">INT</text>
+        <line x1="400" y1="74" x2="630" y2="74" stroke="#f0f0f8"/>
+        <text x="440" y="90" font-size="10.5" fill="#2d3142">title</text>
+        <text x="571" y="90" font-size="10" fill="#8b91b0" font-family="JetBrains Mono,monospace">VARCHAR</text>
+        <line x1="400" y1="96" x2="630" y2="96" stroke="#f0f0f8"/>
+        <text x="440" y="112" font-size="10.5" fill="#2d3142">thema</text>
+        <text x="571" y="112" font-size="10" fill="#8b91b0" font-family="JetBrains Mono,monospace">VARCHAR</text>
+        <line x1="400" y1="118" x2="630" y2="118" stroke="#f0f0f8"/>
+        <text x="440" y="134" font-size="10.5" fill="#2d3142">era</text>
+        <text x="571" y="134" font-size="10" fill="#8b91b0" font-family="JetBrains Mono,monospace">VARCHAR</text>
+        <line x1="400" y1="140" x2="630" y2="140" stroke="#f0f0f8"/>
+        <text x="440" y="156" font-size="10.5" fill="#2d3142">emotion</text>
+        <text x="571" y="156" font-size="10" fill="#8b91b0" font-family="JetBrains Mono,monospace">VARCHAR</text>
+        <line x1="400" y1="162" x2="630" y2="162" stroke="#f0f0f8"/>
+        <text x="440" y="178" font-size="10.5" fill="#2d3142">era_year</text>
+        <text x="585" y="178" font-size="10" fill="#8b91b0" font-family="JetBrains Mono,monospace">INT</text>
+        <line x1="400" y1="184" x2="630" y2="184" stroke="#f0f0f8"/>
+        <text x="440" y="200" font-size="10.5" fill="#2d3142">emotion_intensity</text>
+        <text x="571" y="200" font-size="10" fill="#8b91b0" font-family="JetBrains Mono,monospace">FLOAT</text>
+        <line x1="400" y1="206" x2="630" y2="206" stroke="#f0f0f8"/>
+        <text x="440" y="222" font-size="10.5" fill="#2d3142">asset_base_url</text>
+        <text x="571" y="222" font-size="10" fill="#8b91b0" font-family="JetBrains Mono,monospace">VARCHAR</text>
+      </g>
+
+      <!-- ── GALLERY_LAYOUT table ── -->
+      <g id="erd-gallery">
+        <rect x="20" y="280" width="230" height="200" rx="5" fill="white" stroke="#534ab7" stroke-width="1.5"/>
+        <rect x="20" y="280" width="230" height="32" rx="5" fill="#eeebff" stroke="#534ab7" stroke-width="1.5"/>
+        <text x="135" y="301" text-anchor="middle" font-size="12" font-weight="700" fill="#3c3489" font-family="JetBrains Mono,monospace">GALLERY_LAYOUT</text>
+        <line x1="20" y1="312" x2="250" y2="312" stroke="#dde0ee"/>
+        <rect x="22" y="314" width="226" height="20" rx="2" fill="#fff9e6"/>
+        <text x="30" y="328" font-size="10" fill="#b36f00" font-family="JetBrains Mono,monospace">PK</text>
+        <text x="60" y="328" font-size="10.5" fill="#2d3142">layout_id</text>
+        <text x="195" y="328" font-size="10" fill="#8b91b0" font-family="JetBrains Mono,monospace">INT</text>
+        <line x1="20" y1="334" x2="250" y2="334" stroke="#f0f0f8"/>
+        <rect x="22" y="336" width="226" height="20" rx="2" fill="#eef2ff"/>
+        <text x="30" y="350" font-size="10" fill="#534ab7" font-family="JetBrains Mono,monospace">FK</text>
+        <text x="60" y="350" font-size="10.5" fill="#2d3142">user_id</text>
+        <text x="195" y="350" font-size="10" fill="#8b91b0" font-family="JetBrains Mono,monospace">INT</text>
+        <line x1="20" y1="356" x2="250" y2="356" stroke="#f0f0f8"/>
+        <text x="60" y="372" font-size="10.5" fill="#2d3142">final_id_list</text>
+        <text x="175" y="372" font-size="10" fill="#8b91b0" font-family="JetBrains Mono,monospace">INT[]</text>
+        <line x1="20" y1="378" x2="250" y2="378" stroke="#f0f0f8"/>
+        <text x="60" y="394" font-size="10.5" fill="#2d3142">status</text>
+        <text x="175" y="394" font-size="10" fill="#8b91b0" font-family="JetBrains Mono,monospace">VARCHAR</text>
+        <line x1="20" y1="400" x2="250" y2="400" stroke="#f0f0f8"/>
+        <text x="60" y="416" font-size="10.5" fill="#2d3142">created_at</text>
+        <text x="163" y="416" font-size="10" fill="#8b91b0" font-family="JetBrains Mono,monospace">TIMESTAMP</text>
+        <line x1="20" y1="422" x2="250" y2="422" stroke="#f0f0f8"/>
+        <text x="60" y="438" font-size="10.5" fill="#2d3142">updated_at</text>
+        <text x="163" y="438" font-size="10" fill="#8b91b0" font-family="JetBrains Mono,monospace">TIMESTAMP</text>
+        <line x1="20" y1="444" x2="250" y2="444" stroke="#f0f0f8"/>
+        <text x="60" y="460" font-size="10.5" fill="#2d3142">is_active</text>
+        <text x="195" y="460" font-size="10" fill="#8b91b0" font-family="JetBrains Mono,monospace">BOOL</text>
+      </g>
+
+      <!-- ── GALLERY_LAYOUT_ARTWORKS ── -->
+      <g id="erd-gla">
+        <rect x="310" y="380" width="240" height="152" rx="5" fill="white" stroke="#534ab7" stroke-width="1.5"/>
+        <rect x="310" y="380" width="240" height="32" rx="5" fill="#eeebff" stroke="#534ab7" stroke-width="1.5"/>
+        <text x="430" y="396" text-anchor="middle" font-size="10.5" font-weight="700" fill="#3c3489" font-family="JetBrains Mono,monospace">GALLERY_LAYOUT_ARTWORKS</text>
+        <line x1="310" y1="412" x2="550" y2="412" stroke="#dde0ee"/>
+        <rect x="312" y="414" width="236" height="20" rx="2" fill="#eef2ff"/>
+        <text x="320" y="428" font-size="10" fill="#534ab7" font-family="JetBrains Mono,monospace">FK</text>
+        <text x="350" y="428" font-size="10.5" fill="#2d3142">layout_id</text>
+        <text x="494" y="428" font-size="10" fill="#8b91b0" font-family="JetBrains Mono,monospace">INT</text>
+        <line x1="310" y1="434" x2="550" y2="434" stroke="#f0f0f8"/>
+        <rect x="312" y="436" width="236" height="20" rx="2" fill="#eef2ff"/>
+        <text x="320" y="450" font-size="10" fill="#534ab7" font-family="JetBrains Mono,monospace">FK</text>
+        <text x="350" y="450" font-size="10.5" fill="#2d3142">artwork_id</text>
+        <text x="494" y="450" font-size="10" fill="#8b91b0" font-family="JetBrains Mono,monospace">INT</text>
+        <line x1="310" y1="456" x2="550" y2="456" stroke="#f0f0f8"/>
+        <text x="350" y="472" font-size="10.5" fill="#2d3142">slot_order</text>
+        <text x="494" y="472" font-size="10" fill="#8b91b0" font-family="JetBrains Mono,monospace">INT</text>
+        <line x1="310" y1="478" x2="550" y2="478" stroke="#f0f0f8"/>
+        <text x="350" y="494" font-size="10.5" fill="#2d3142">position_data</text>
+        <text x="478" y="494" font-size="10" fill="#8b91b0" font-family="JetBrains Mono,monospace">JSON</text>
+        <line x1="310" y1="500" x2="550" y2="500" stroke="#f0f0f8"/>
+        <text x="350" y="516" font-size="10.5" fill="#2d3142">inserted_at</text>
+        <text x="467" y="516" font-size="10" fill="#8b91b0" font-family="JetBrains Mono,monospace">TIMESTAMP</text>
+      </g>
+
+      <!-- ── THEME_HISTORY_LOG ── -->
+      <g id="erd-log">
+        <rect x="680" y="280" width="240" height="224" rx="5" fill="white" stroke="#c0392b" stroke-width="1.5"/>
+        <rect x="680" y="280" width="240" height="32" rx="5" fill="#fdf0ec" stroke="#c0392b" stroke-width="1.5"/>
+        <text x="800" y="296" text-anchor="middle" font-size="11.5" font-weight="700" fill="#7a1a0c" font-family="JetBrains Mono,monospace">THEME_HISTORY_LOG</text>
+        <line x1="680" y1="312" x2="920" y2="312" stroke="#dde0ee"/>
+        <rect x="682" y="314" width="236" height="20" rx="2" fill="#fff9e6"/>
+        <text x="690" y="328" font-size="10" fill="#b36f00" font-family="JetBrains Mono,monospace">PK</text>
+        <text x="720" y="328" font-size="10.5" fill="#2d3142">log_id</text>
+        <text x="873" y="328" font-size="10" fill="#8b91b0" font-family="JetBrains Mono,monospace">INT</text>
+        <line x1="680" y1="334" x2="920" y2="334" stroke="#f0f0f8"/>
+        <rect x="682" y="336" width="236" height="20" rx="2" fill="#eef2ff"/>
+        <text x="690" y="350" font-size="10" fill="#534ab7" font-family="JetBrains Mono,monospace">FK</text>
+        <text x="720" y="350" font-size="10.5" fill="#2d3142">user_id</text>
+        <text x="873" y="350" font-size="10" fill="#8b91b0" font-family="JetBrains Mono,monospace">INT</text>
+        <line x1="680" y1="356" x2="920" y2="356" stroke="#f0f0f8"/>
+        <rect x="682" y="358" width="236" height="20" rx="2" fill="#eef2ff"/>
+        <text x="690" y="372" font-size="10" fill="#534ab7" font-family="JetBrains Mono,monospace">FK</text>
+        <text x="720" y="372" font-size="10.5" fill="#2d3142">layout_id</text>
+        <text x="873" y="372" font-size="10" fill="#8b91b0" font-family="JetBrains Mono,monospace">INT</text>
+        <line x1="680" y1="378" x2="920" y2="378" stroke="#f0f0f8"/>
+        <text x="720" y="394" font-size="10.5" fill="#2d3142">theme_id</text>
+        <text x="857" y="394" font-size="10" fill="#8b91b0" font-family="JetBrains Mono,monospace">VARCHAR</text>
+        <line x1="680" y1="400" x2="920" y2="400" stroke="#f0f0f8"/>
+        <text x="720" y="416" font-size="10.5" fill="#2d3142">era_id</text>
+        <text x="857" y="416" font-size="10" fill="#8b91b0" font-family="JetBrains Mono,monospace">VARCHAR</text>
+        <line x1="680" y1="422" x2="920" y2="422" stroke="#f0f0f8"/>
+        <text x="720" y="438" font-size="10.5" fill="#2d3142">emotion_id</text>
+        <text x="857" y="438" font-size="10" fill="#8b91b0" font-family="JetBrains Mono,monospace">VARCHAR</text>
+        <line x1="680" y1="444" x2="920" y2="444" stroke="#f0f0f8"/>
+        <text x="720" y="460" font-size="10.5" fill="#2d3142">emotion_intensity</text>
+        <text x="845" y="460" font-size="10" fill="#8b91b0" font-family="JetBrains Mono,monospace">FLOAT</text>
+        <line x1="680" y1="466" x2="920" y2="466" stroke="#f0f0f8"/>
+        <text x="720" y="482" font-size="10.5" fill="#2d3142">selected_at</text>
+        <text x="833" y="482" font-size="10" fill="#8b91b0" font-family="JetBrains Mono,monospace">TIMESTAMP</text>
+      </g>
+
+      <!-- ── CURATION_OPTIONS ── -->
+      <g id="erd-opts">
+        <rect x="680" y="20" width="240" height="200" rx="5" fill="white" stroke="#8b91b0" stroke-width="1.5"/>
+        <rect x="680" y="20" width="240" height="32" rx="5" fill="#f5f6fb" stroke="#8b91b0" stroke-width="1.5"/>
+        <text x="800" y="41" text-anchor="middle" font-size="12" font-weight="700" fill="#4a4f6a" font-family="JetBrains Mono,monospace">CURATION_OPTIONS</text>
+        <line x1="680" y1="52" x2="920" y2="52" stroke="#dde0ee"/>
+        <rect x="682" y="54" width="236" height="20" rx="2" fill="#fff9e6"/>
+        <text x="690" y="68" font-size="10" fill="#b36f00" font-family="JetBrains Mono,monospace">PK</text>
+        <text x="720" y="68" font-size="10.5" fill="#2d3142">option_id</text>
+        <text x="873" y="68" font-size="10" fill="#8b91b0" font-family="JetBrains Mono,monospace">INT</text>
+        <line x1="680" y1="74" x2="920" y2="74" stroke="#f0f0f8"/>
+        <text x="720" y="90" font-size="10.5" fill="#2d3142">category</text>
+        <text x="857" y="90" font-size="10" fill="#8b91b0" font-family="JetBrains Mono,monospace">VARCHAR</text>
+        <line x1="680" y1="96" x2="920" y2="96" stroke="#f0f0f8"/>
+        <text x="720" y="112" font-size="10.5" fill="#2d3142">label</text>
+        <text x="857" y="112" font-size="10" fill="#8b91b0" font-family="JetBrains Mono,monospace">VARCHAR</text>
+        <line x1="680" y1="118" x2="920" y2="118" stroke="#f0f0f8"/>
+        <text x="720" y="134" font-size="10.5" fill="#2d3142">value</text>
+        <text x="857" y="134" font-size="10" fill="#8b91b0" font-family="JetBrains Mono,monospace">VARCHAR</text>
+        <line x1="680" y1="140" x2="920" y2="140" stroke="#f0f0f8"/>
+        <text x="720" y="156" font-size="10.5" fill="#2d3142">display_order</text>
+        <text x="861" y="156" font-size="10" fill="#8b91b0" font-family="JetBrains Mono,monospace">INT</text>
+        <line x1="680" y1="162" x2="920" y2="162" stroke="#f0f0f8"/>
+        <text x="720" y="178" font-size="10.5" fill="#2d3142">is_active</text>
+        <text x="861" y="178" font-size="10" fill="#8b91b0" font-family="JetBrains Mono,monospace">BOOL</text>
+        <line x1="680" y1="184" x2="920" y2="184" stroke="#f0f0f8"/>
+        <text x="720" y="200" font-size="10.5" fill="#2d3142">description</text>
+        <text x="845" y="200" font-size="10" fill="#8b91b0" font-family="JetBrains Mono,monospace">TEXT</text>
+      </g>
+
+      <!-- ══ RELATIONSHIPS ══ -->
+
+      <!-- USERS ||--o{ GALLERY_LAYOUT (user_id FK) -->
+      <line x1="130" y1="198" x2="130" y2="278" stroke="#534ab7" stroke-width="1.5" marker-end="url(#erd-many)" marker-start="url(#erd-one)"/>
+      <text x="136" y="244" font-size="9.5" fill="#534ab7">1 : N</text>
+
+      <!-- USERS ||--o{ THEME_HISTORY_LOG (user_id FK) -->
+      <path d="M240 130 Q620 130 680 340" fill="none" stroke="#534ab7" stroke-width="1.3" stroke-dasharray="6 3" marker-end="url(#erd-many)" marker-start="url(#erd-one)"/>
+      <text x="450" y="118" font-size="9.5" fill="#534ab7">1 : N</text>
+
+      <!-- GALLERY_LAYOUT ||--o{ GALLERY_LAYOUT_ARTWORKS (layout_id FK) -->
+      <line x1="250" y1="380" x2="308" y2="430" stroke="#534ab7" stroke-width="1.5" marker-end="url(#erd-many)" marker-start="url(#erd-one)"/>
+      <text x="220" y="416" font-size="9.5" fill="#534ab7">1 : N</text>
+
+      <!-- ARTWORKS ||--o{ GALLERY_LAYOUT_ARTWORKS (artwork_id FK) -->
+      <line x1="515" y1="242" x2="490" y2="378" stroke="#0f6e56" stroke-width="1.5" marker-end="url(#erd-many)" marker-start="url(#erd-one)"/>
+      <text x="530" y="310" font-size="9.5" fill="#0f6e56">1 : N</text>
+
+      <!-- GALLERY_LAYOUT ||--o| THEME_HISTORY_LOG (layout_id FK) -->
+      <path d="M250 370 Q465 370 680 392" fill="none" stroke="#c0392b" stroke-width="1.3" stroke-dasharray="6 3" marker-end="url(#erd-many)" marker-start="url(#erd-one)"/>
+      <text x="445" y="362" font-size="9.5" fill="#c0392b">1 : N</text>
+
+      <!-- ══ LEGEND ══ -->
+      <g transform="translate(20,590)">
+        <rect width="400" height="136" rx="5" fill="#f5f6fb" stroke="#dde0ee" stroke-width="1"/>
+        <text x="14" y="22" font-size="11" font-weight="600" fill="#0f1117" font-family="JetBrains Mono,monospace">범례</text>
+        <!-- PK -->
+        <rect x="14" y="32" width="28" height="16" rx="2" fill="#fff9e6"/>
+        <text x="18" y="44" font-size="9.5" fill="#b36f00" font-family="JetBrains Mono,monospace">PK</text>
+        <text x="48" y="44" font-size="10" fill="#4a4f6a">Primary Key — 테이블 고유 식별자</text>
+        <!-- FK -->
+        <rect x="14" y="54" width="28" height="16" rx="2" fill="#eef2ff"/>
+        <text x="18" y="66" font-size="9.5" fill="#534ab7" font-family="JetBrains Mono,monospace">FK</text>
+        <text x="48" y="66" font-size="10" fill="#4a4f6a">Foreign Key — 다른 테이블 참조</text>
+        <!-- 1:N solid -->
+        <line x1="14" y1="84" x2="64" y2="84" stroke="#534ab7" stroke-width="1.5" marker-start="url(#erd-one)" marker-end="url(#erd-many)"/>
+        <text x="72" y="88" font-size="10" fill="#4a4f6a">1 : N  관계 (실선)</text>
+        <!-- 1:N dashed -->
+        <line x1="14" y1="106" x2="64" y2="106" stroke="#c0392b" stroke-width="1.3" stroke-dasharray="5 3" marker-start="url(#erd-one)" marker-end="url(#erd-many)"/>
+        <text x="72" y="110" font-size="10" fill="#4a4f6a">1 : N  참조 관계 (점선)</text>
+        <!-- column bg -->
+        <text x="200" y="44" font-size="10" fill="#4a4f6a">컬럼 배경색: PK=노랑, FK=파랑</text>
+        <text x="200" y="62" font-size="10" fill="#4a4f6a">타입: INT, VARCHAR, FLOAT, etc.</text>
+        <text x="200" y="80" font-size="10" fill="#4a4f6a">JSON = 복합 데이터 저장</text>
+        <text x="200" y="98" font-size="10" fill="#4a4f6a">INT[] = 정수 배열 (PostgreSQL)</text>
+        <text x="200" y="116" font-size="10" fill="#4a4f6a">TIMESTAMP = 날짜+시간</text>
+      </g>
+      </svg>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══ DATA ══
+const ACTORS=[
+  {name:'User',         color:'#5f5e5a',light:'#f1efe8',layer:''},
+  {name:'Selection\nFront',color:'#185fa5',light:'#e6f1fb',layer:'Frontend'},
+  {name:'Thema\nFront', color:'#185fa5',light:'#e6f1fb',layer:'Frontend'},
+  {name:'Backend\nFastAPI',color:'#0f6e56',light:'#e0f4f2',layer:'Backend'},
+  {name:'Curation\nService',color:'#0f6e56',light:'#e0f4f2',layer:'Backend'},
+  {name:'Artwork\nRepo', color:'#534ab7',light:'#eeebff',layer:'DB'},
+  {name:'PostgreSQL',   color:'#534ab7',light:'#eeebff',layer:'DB'},
+];
+
+const STEPS=[
+  {id:'intro',label:'시스템\n개요',badge:'badge-sys',badgeText:'INTRO',title:'시스템 개요',desc:'7개 액터의 역할과 전체 데이터 흐름 구조를 확인합니다.',actors:[0,1,2,3,4,5,6],isAlt:false,events:[]},
+  {id:'s1',label:'관람\n진입',badge:'badge-fe',badgeText:'STEP 1',title:'관람 방식 선택',desc:'사용자가 SelectionFront에서 관람 방식을 선택하고 ThemaFront로 전달합니다.',actors:[0,1,2],isAlt:false,events:[
+    {type:'arrow',from:0,to:1,label:'관람 방식 클릭',flowText:'User → SelectionFront : 관람 방식 클릭'},
+    {type:'self',who:1,label:'themaView JSON 생성',flowText:'SelectionFront : themaView JSON 생성 {"themaView": 2}'},
+    {type:'arrow',from:1,to:2,label:'sendViewMode(JSON)',flowText:'SelectionFront → ThemaFront : sendViewMode(JSON)'},
+  ]},
+  {id:'s2',label:'UI\n구성',badge:'badge-fe',badgeText:'STEP 2',title:'테마 옵션 UI 렌더링',desc:'ThemaFront가 themaView 값을 확인하고 배열·토글 로직을 구성하여 사용자에게 UI를 제공합니다.',actors:[0,2],isAlt:false,events:[
+    {type:'self',who:2,label:'themaView == 2 확인',flowText:'ThemaFront : themaView == 2 확인'},
+    {type:'self',who:2,label:'selectThema/Era/Emotion\n배열 정의',flowText:'ThemaFront : selectThema / Era / Emotion 배열 정의'},
+    {type:'self',who:2,label:'handleClick,\ngetButtonStyle 정의',flowText:'ThemaFront : handleClick, getButtonStyle 정의'},
+    {type:'arrow',from:2,to:0,label:'테마 옵션 UI 렌더링',dashed:true,flowText:'ThemaFront → User : 테마 옵션 선택창 UI 렌더링'},
+  ]},
+  {id:'s3',label:'선택\n조합',badge:'badge-fe',badgeText:'STEP 3',title:'사용자 옵션 선택 및 데이터 조합',desc:'사용자가 버튼을 클릭하면 ThemaFront가 상태를 저장하고 finalData를 조합하여 백엔드로 전송합니다.',actors:[0,2],isAlt:false,events:[
+    {type:'arrow',from:0,to:2,label:'버튼 클릭 (테마·시대·감정)',flowText:'User → ThemaFront : 버튼 클릭 (테마·시대·감정)'},
+    {type:'self',who:2,label:'selected* 상태 저장',flowText:'ThemaFront : selectedTheme / Era / Emotion 상태 저장'},
+    {type:'self',who:2,label:'handleSubmit:\nfinalData 조합',flowText:'ThemaFront : handleSubmit() → finalData = {theme, era, emotion}'},
+  ]},
+  {id:'s4a',label:'알고리즘\n진입',badge:'badge-be',badgeText:'STEP 4-A',title:'백엔드 수신 및 큐레이션 시작',desc:'ThemaFront가 HTTP POST로 전송하면 Backend가 CORS 검증 후 CurationService를 호출하고 에너지 좌표를 설정합니다.',actors:[2,3,4],isAlt:false,events:[
+    {type:'arrow',from:2,to:3,label:'POST /api/v1/curation/select',flowText:'ThemaFront → Backend : POST /api/v1/curation/select (JSON)'},
+    {type:'self',who:3,label:'CORS 미들웨어 검증',flowText:'Backend : CORS 미들웨어 검증 (add_middleware)'},
+    {type:'arrow',from:3,to:4,label:'curate_artworks(UserChoice)',flowText:'Backend → CurationService : curate_artworks(UserChoice)'},
+    {type:'self',who:4,label:'THEMA_X_MAP,\nuser_x 산출',flowText:'CurationService : THEMA_X_MAP 기반 user_x 산출'},
+    {type:'self',who:4,label:'get_emotion_y(intensity)\n→ user_y',flowText:'CurationService : get_emotion_y(intensity) → user_y (1~4)'},
+  ]},
+  {id:'s4b',label:'작품\n정렬',badge:'badge-db',badgeText:'STEP 4-B',title:'DB 조회 및 유클리드 정렬',desc:'CurationService가 전체 작품을 로드하여 match_score와 vector_distance를 계산하고 4단계 정렬 후 DB에 재조회합니다.',actors:[4,5,6],isAlt:false,events:[
+    {type:'arrow',from:4,to:5,label:'fetch_all_artworks()',flowText:'CurationService → ArtworkRepo : fetch_all_artworks()'},
+    {type:'self',who:5,label:'asyncpg.connect TCP/IP',flowText:'ArtworkRepo : asyncpg.connect(database, host) TCP/IP'},
+    {type:'arrow',from:5,to:6,label:'SELECT * FROM artworks',flowText:'ArtworkRepo → PostgreSQL : SELECT * FROM artworks'},
+    {type:'self',who:6,label:'전체 작품 레코드 반환',flowText:'PostgreSQL : 전체 작품 레코드 반환'},
+    {type:'arrow',from:6,to:5,label:'Artwork[] 반환',dashed:true,flowText:'PostgreSQL → ArtworkRepo : Artwork[] 반환'},
+    {type:'arrow',from:5,to:4,label:'artworks[] 전달',dashed:true,flowText:'ArtworkRepo → CurationService : artworks[] 전달'},
+    {type:'self',who:4,label:'calculate_match_score()',flowText:'CurationService : calculate_match_score() — 3항목 일치 점수 (0~3)'},
+    {type:'self',who:4,label:'calculate_vector_distance()',flowText:'CurationService : calculate_vector_distance() — 유클리드 거리 계산'},
+    {type:'self',who:4,label:'sort_artworks() 4단계 정렬',flowText:'CurationService : sort_artworks() — score↓ dist↑ intensity↑ year↑'},
+    {type:'self',who:4,label:'extract_final_ids() → INT[]',flowText:'CurationService : extract_final_ids() → INT[]'},
+    {type:'arrow',from:4,to:5,label:'fetch_artworks_by_ids(INT[])',flowText:'CurationService → ArtworkRepo : fetch_artworks_by_ids(INT[])'},
+    {type:'arrow',from:5,to:6,label:'WHERE id=ANY\nORDER BY array_position',flowText:'ArtworkRepo → PostgreSQL : WHERE id=ANY(…) ORDER BY array_position'},
+    {type:'self',who:6,label:'정렬 순서 유지 쿼리 실행',flowText:'PostgreSQL : 정렬 순서 유지 쿼리 실행'},
+    {type:'arrow',from:6,to:5,label:'batchedlist JSON[] 반환',dashed:true,flowText:'PostgreSQL → ArtworkRepo : batchedlist JSON[] 반환'},
+    {type:'self',who:5,label:'save_layout() 저장',flowText:'ArtworkRepo : save_layout() → GALLERY_LAYOUT 저장'},
+    {type:'self',who:5,label:'log_theme_history() 저장',flowText:'ArtworkRepo : log_theme_history() → THEME_HISTORY_LOG 저장'},
+    {type:'arrow',from:5,to:4,label:'batchedlist 반환',dashed:true,flowText:'ArtworkRepo → CurationService : batchedlist 반환'},
+  ]},
+  {id:'s56',label:'응답\n반환',badge:'badge-be',badgeText:'STEP 5/6',title:'응답 직렬화 및 갤러리 렌더링',desc:'Backend가 Pydantic으로 직렬화 후 ThemaFront에 응답하고, 3DGS 갤러리 슬롯을 렌더링합니다.',actors:[0,2,3,4],isAlt:false,events:[
+    {type:'arrow',from:4,to:3,label:'RecommendationResponse 반환',dashed:true,flowText:'CurationService → Backend : RecommendationResponse 반환'},
+    {type:'self',who:3,label:'Pydantic JSON 직렬화',flowText:'Backend : Pydantic JSON 직렬화'},
+    {type:'self',who:3,label:'POST /api/v1/log/theme-history',flowText:'Backend : POST /api/v1/log/theme-history'},
+    {type:'arrow',from:3,to:2,label:'HTTP 200 {final_id_list}',dashed:true,flowText:'Backend → ThemaFront : HTTP 200 {final_id_list: [...]}'},
+    {type:'self',who:2,label:'3DGS 갤러리 슬롯\n렌더링 트리거',flowText:'ThemaFront : 3DGS 갤러리 슬롯 렌더링 트리거'},
+    {type:'arrow',from:2,to:0,label:'재배치된 3DGS 갤러리 표시',dashed:true,flowText:'ThemaFront → User : 재배치된 3DGS 갤러리 표시'},
+  ]},
+  {id:'alt',label:'오류\n처리',badge:'badge-alt',badgeText:'ALT',title:'네트워크 오류 / 서버 이슈 발생 시',desc:'STEP 4~5 오류 발생 시 Backend가 Fallback으로 기본 배치를 로드하고 오류 모달을 표시합니다.',actors:[0,2,3,6],isAlt:true,events:[
+    {type:'arrow',from:2,to:3,label:'POST /api/v1/curation/select',flowText:'ThemaFront → Backend : POST /api/v1/curation/select'},
+    {type:'self',who:3,label:'timeout / 오류 감지\n(try-except)',flowText:'Backend : timeout / 서버 오류 감지 (try-except)'},
+    {type:'self',who:3,label:'Fallback: Default 배치 로드',flowText:'Backend : Fallback 처리 — 기본 관람 Default 배치 로드'},
+    {type:'arrow',from:3,to:6,label:'GET /api/v1/artwork/default',dashed:true,flowText:'Backend → PostgreSQL : GET /api/v1/artwork/default'},
+    {type:'arrow',from:6,to:3,label:'Default layout_id 반환',dashed:true,flowText:'PostgreSQL → Backend : Default layout_id 반환'},
+    {type:'arrow',from:3,to:2,label:'HTTP 200 (status: fallback)',dashed:true,flowText:'Backend → ThemaFront : HTTP 200 (status: fallback)'},
+    {type:'self',who:2,label:'오류 모달 표시',flowText:'ThemaFront : 오류 모달 표시 — "기본 전시로 자동 입장"'},
+    {type:'arrow',from:2,to:0,label:'기본 전시로 자동 입장',dashed:true,flowText:'ThemaFront → User : 기본 전시로 자동 입장'},
+  ]},
+];
+
+// ══ PROGRESS BAR ══
+const PROG=[
+  {label:'클래스\n다이어그램',sec:'section-class',isAlt:false},
+  ...STEPS.map((s,i)=>({label:s.label,sec:'section-seq',stepIdx:i,isAlt:s.isAlt})),
+  {label:'전체\n흐름도',sec:'section-fullseq',isAlt:false},
+  {label:'ERD',sec:'section-erd',isAlt:false},
+];
+const track=document.getElementById('prog-track');
+PROG.forEach((item,i)=>{
+  const w=document.createElement('div');
+  w.className='prog-step'+(item.isAlt?' alt-step':'');
+  w.dataset.pi=i;
+  w.innerHTML=`<div class="prog-dot-wrap"><div class="prog-dot"></div><div class="prog-label">${item.label.replace('\n','<br>')}</div></div>`;
+  w.addEventListener('click',()=>{
+    if(item.stepIdx!=null){
+      scrollToSection('section-seq');
+      setTimeout(()=>goToStep(item.stepIdx,-1),300);
+    } else {
+      scrollToSection(item.sec);
+    }
+  });
+  track.appendChild(w);
+  if(i<PROG.length-1){const l=document.createElement('div');l.className='prog-line';track.appendChild(l);}
+});
+function updProg(pi){
+  document.querySelectorAll('.prog-step').forEach((d,di)=>{
+    d.classList.remove('active','done');
+    if(di<pi)d.classList.add('done');
+    if(di===pi)d.classList.add('active');
+  });
+  document.querySelectorAll('.prog-line').forEach((l,li)=>{l.style.background=li<pi?'var(--accent)':'var(--rule)';});
+}
+
+// ══ SCROLL HELPER ══
+function scrollToSection(secId){
+  const barH=document.getElementById('progress-bar').offsetHeight;
+  const el=document.getElementById(secId);
+  if(!el)return;
+  const target=el.getBoundingClientRect().top+window.scrollY-barH;
+  window.scrollTo({top:target,behavior:'smooth'});
+}
+
+// ══ SCROLL-PIN: advance step on scroll ══
+// The seq-scroll-spacer is tall. We divide it into STEPS.length bands.
+// When scrolling into each band, we auto-advance the step.
+let scrollStepAdvancing=false;
+function handleScrollPin(){
+  const outer=document.getElementById('seq-pin-outer');
+  const spacer=outer.querySelector('.seq-scroll-spacer');
+  if(!outer||!spacer)return;
+  const barH=document.getElementById('progress-bar').offsetHeight;
+  const outerRect=outer.getBoundingClientRect();
+  // Only activate while outer is in sticky zone
+  if(outerRect.top > barH || outerRect.bottom < window.innerHeight) return;
+  // Scroll position within the outer div
+  const outerTop=outer.getBoundingClientRect().top+window.scrollY - barH;
+  const viewerH=window.innerHeight-barH;
+  const spacerH=spacer.offsetHeight;
+  const scrolled=window.scrollY-(outerTop+viewerH);
+  if(scrolled<0) return;
+  const band=spacerH/Math.max(STEPS.length,1);
+  const targetStep=Math.min(STEPS.length-1,Math.floor(scrolled/band));
+  if(targetStep!==curStep){
+    goToStep(targetStep,-1);
+  }
+}
+
+window.addEventListener('scroll',handleScrollPin,{passive:true});
+
+// SVG BUILDER
+const SVG_NS='http://www.w3.org/2000/svg';
+const W=680, EVT_H=60;
+
+function buildSVG(step,revealUpTo){
+  const svg=document.getElementById('main-svg');
+  svg.innerHTML='';
+  const actors=step.actors,N=actors.length;
+  const spacing=N<=1?0:Math.min(160,Math.floor((W-80)/(N-1)));
+  const startX=N<=1?W/2:Math.floor((W-spacing*(N-1))/2);
+  const xs=actors.map((_,li)=>startX+li*spacing);
+  const axMap={};actors.forEach((gi,li)=>{axMap[gi]=xs[li];});
+  const BOX_W=Math.min(104,spacing-10),BOX_H=46;
+  const lifeTop=BOX_H+8,evtStart=lifeTop+38;
+  const svgH=Math.max(340,evtStart+step.events.length*EVT_H+40);
+  svg.setAttribute('viewBox',`0 0 ${W} ${svgH}`);
+
+  const defs=document.createElementNS(SVG_NS,'defs');
+  const mid=`arr-${step.id}`;
+  defs.innerHTML=`<marker id="${mid}" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker>`;
+  svg.appendChild(defs);
+  const LC=step.isAlt?'#c0392b':'#2d3142';
+  const MK=`url(#${mid})`;
+
+  if(step.isAlt){
+    const ab=document.createElementNS(SVG_NS,'rect');
+    ab.setAttribute('x','4');ab.setAttribute('y','4');
+    ab.setAttribute('width',W-8);ab.setAttribute('height',svgH-8);
+    ab.setAttribute('rx','6');ab.setAttribute('fill','none');
+    ab.setAttribute('stroke','#c0392b');ab.setAttribute('stroke-width','1');
+    ab.setAttribute('stroke-dasharray','6 3');svg.appendChild(ab);
+    const al=document.createElementNS(SVG_NS,'text');
+    al.setAttribute('x','12');al.setAttribute('y','18');
+    al.setAttribute('font-size','10');al.setAttribute('fill','#c0392b');
+    al.setAttribute('font-family','JetBrains Mono,monospace');
+    al.textContent='[alt] 오류 발생';svg.appendChild(al);
+  }
+
+  actors.forEach((gi,li)=>{
+    const x=xs[li];
+    const ll=document.createElementNS(SVG_NS,'line');
+    ll.setAttribute('x1',x);ll.setAttribute('y1',lifeTop);
+    ll.setAttribute('x2',x);ll.setAttribute('y2',svgH-12);
+    ll.setAttribute('stroke','#dde0ee');ll.setAttribute('stroke-width','0.9');
+    ll.setAttribute('stroke-dasharray','4 3');svg.appendChild(ll);
+    const a=ACTORS[gi];
+    const abar=document.createElementNS(SVG_NS,'rect');
+    abar.setAttribute('x',x-4);abar.setAttribute('y',lifeTop);
+    abar.setAttribute('width','8');abar.setAttribute('height',svgH-lifeTop-12);
+    abar.setAttribute('rx','2');abar.setAttribute('fill',step.isAlt?'#c0392b':a.color);
+    abar.setAttribute('opacity','0.18');svg.appendChild(abar);
+    const g=document.createElementNS(SVG_NS,'g');
+    const r=document.createElementNS(SVG_NS,'rect');
+    r.setAttribute('x',x-BOX_W/2);r.setAttribute('y','4');
+    r.setAttribute('width',BOX_W);r.setAttribute('height',BOX_H);
+    r.setAttribute('rx','5');
+    r.setAttribute('fill',step.isAlt?'#fdf0ec':a.light);
+    r.setAttribute('stroke',step.isAlt?'#c0392b':a.color);
+    r.setAttribute('stroke-width','1');g.appendChild(r);
+    if(a.layer){
+      const lt=document.createElementNS(SVG_NS,'text');
+      lt.setAttribute('x',x);lt.setAttribute('y','18');
+      lt.setAttribute('text-anchor','middle');lt.setAttribute('font-size','8');
+      lt.setAttribute('fill',step.isAlt?'#c0392b':a.color);
+      lt.setAttribute('font-family','JetBrains Mono,monospace');lt.setAttribute('opacity','0.72');
+      lt.textContent=a.layer;g.appendChild(lt);
+    }
+    const nameLines=a.name.split('\n');
+    nameLines.forEach((ln,nli)=>{
+      const t=document.createElementNS(SVG_NS,'text');
+      const yb=a.layer?(BOX_H/2+12+(nli-(nameLines.length-1)/2)*13):(BOX_H/2+6+(nli-(nameLines.length-1)/2)*13);
+      t.setAttribute('x',x);t.setAttribute('y',yb);
+      t.setAttribute('text-anchor','middle');t.setAttribute('dominant-baseline','central');
+      t.setAttribute('font-size','12');t.setAttribute('font-weight','600');
+      t.setAttribute('fill',step.isAlt?'#c0392b':a.color);
+      t.setAttribute('font-family','Noto Sans KR,sans-serif');
+      t.textContent=ln;g.appendChild(t);
+    });
+    svg.appendChild(g);
+  });
+
+  let y=evtStart;
+  step.events.forEach((ev,ei)=>{
+    const g=document.createElementNS(SVG_NS,'g');
+    g.classList.add('seq-evt');
+    // future events hidden; already-revealed events stay fully visible
+    g.style.opacity = ei > revealUpTo ? '0' : '1';
+    const isNew = ei === revealUpTo;
+
+    if(ev.type==='arrow'){
+      const fx=axMap[ev.from],tx=axMap[ev.to];
+      const dir=tx>fx?1:-1,x1=fx+dir*5,x2=tx-dir*5;
+      const len=Math.abs(x2-x1);
+      const line=document.createElementNS(SVG_NS,'line');
+      line.setAttribute('x1',x1);line.setAttribute('y1',y);
+      line.setAttribute('x2',x2);line.setAttribute('y2',y);
+      line.setAttribute('stroke',LC);line.setAttribute('stroke-width','1.4');
+      if(ev.dashed)line.setAttribute('stroke-dasharray','5 3');
+      line.setAttribute('marker-end',MK);
+      // Only animate the newly-revealed event; past events render instantly at full length
+      if(isNew){
+        line.style.setProperty('--len',len);
+        line.classList.add('draw-line');
+        requestAnimationFrame(()=>line.classList.add('go'));
+      }
+      g.appendChild(line);
+      (ev.label||'').split('\n').forEach((ln,li2,arr)=>{
+        const t=document.createElementNS(SVG_NS,'text');
+        t.setAttribute('x',(fx+tx)/2);
+        t.setAttribute('y',y-6-(arr.length-1-li2)*13);
+        t.setAttribute('text-anchor','middle');t.setAttribute('font-size','11');
+        t.setAttribute('fill',LC);t.setAttribute('font-family','Noto Sans KR,sans-serif');
+        t.textContent=ln;g.appendChild(t);
+      });
+    } else {
+      const sx=axMap[ev.who],rw=28,plen=90;
+      const path=document.createElementNS(SVG_NS,'path');
+      path.setAttribute('d',`M${sx+5},${y} Q${sx+rw+14},${y} ${sx+rw+14},${y+18} Q${sx+rw+14},${y+36} ${sx+5},${y+36}`);
+      path.setAttribute('fill','none');path.setAttribute('stroke',LC);
+      path.setAttribute('stroke-width','1.4');path.setAttribute('marker-end',MK);
+      // Only animate the newly-revealed event
+      if(isNew){
+        path.style.setProperty('--plen',plen);
+        path.classList.add('draw-path');
+        requestAnimationFrame(()=>path.classList.add('go'));
+      }
+      g.appendChild(path);
+      (ev.label||'').split('\n').forEach((ln,li2)=>{
+        const t=document.createElementNS(SVG_NS,'text');
+        t.setAttribute('x',sx+rw+22);t.setAttribute('y',y+16+li2*14);
+        t.setAttribute('font-size','11');t.setAttribute('fill',LC);
+        t.setAttribute('font-family','Noto Sans KR,sans-serif');
+        t.textContent=ln;g.appendChild(t);
+      });
+    }
+    svg.appendChild(g);
+    y+=EVT_H;
+  });
+}
+
+function buildFlow(step,revealUpTo){
+  const c=document.getElementById('flow-items');c.innerHTML='';
+  if(!step.events.length){
+    const p=document.createElement('p');
+    p.style='font-size:13px;color:var(--ink-4);padding:8px 0;line-height:1.7;';
+    p.textContent='다음 이벤트(›)를 누르면 순차 흐름이 표시됩니다.';
+    c.appendChild(p);return;
+  }
+  step.events.forEach((ev,ei)=>{
+    const d=document.createElement('div');
+    d.className='flow-item';
+    if(ei<revealUpTo)d.classList.add('done');
+    if(ei===revealUpTo){d.classList.add('active');if(step.isAlt)d.classList.add('alt-col');}
+    d.innerHTML=`<span class="flow-idx">${ei+1}</span><span class="flow-text">${ev.flowText}</span>`;
+    c.appendChild(d);
+  });
+  setTimeout(()=>{const a=c.querySelector('.active');if(a)a.scrollIntoView({block:'nearest',behavior:'smooth'});},80);
+}
+
+// ══ STATE & NAVIGATION ══
+let curStep=0,curEvt=-1;
+
+function goToStep(si,ei){
+  curStep=Math.max(0,Math.min(STEPS.length-1,si));
+  curEvt=Math.max(-1,Math.min(STEPS[curStep].events.length-1,ei));
+  const step=STEPS[curStep];
+
+  updProg(curStep+1);
+  document.getElementById('step-badge').className=`step-badge ${step.badge}`;
+  document.getElementById('step-badge').textContent=step.badgeText;
+  document.getElementById('step-name').textContent=step.title;
+  document.getElementById('step-desc').textContent=step.desc;
+
+  buildSVG(step,curEvt);
+  buildFlow(step,curEvt);
+
+  document.getElementById('nav-prog').textContent=`${curStep+1} / ${STEPS.length}`;
+  document.getElementById('btn-ps').disabled=curStep===0;
+  document.getElementById('btn-ns').disabled=curStep===STEPS.length-1;
+  document.getElementById('btn-pe').disabled=curEvt<=-1;
+  document.getElementById('btn-ne').disabled=curEvt>=step.events.length-1;
+}
+
+function nextEvt(){
+  const step=STEPS[curStep];
+  if(curEvt<step.events.length-1) goToStep(curStep,curEvt+1);
+  else if(curStep<STEPS.length-1) goToStep(curStep+1,-1);
+}
+function prevEvt(){
+  if(curEvt>-1) goToStep(curStep,curEvt-1);
+  else if(curStep>0) goToStep(curStep-1,STEPS[curStep-1].events.length-1);
+}
+
+document.getElementById('btn-ne').addEventListener('click',nextEvt);
+document.getElementById('btn-pe').addEventListener('click',prevEvt);
+document.getElementById('btn-ns').addEventListener('click',()=>{if(curStep<STEPS.length-1)goToStep(curStep+1,-1);});
+document.getElementById('btn-ps').addEventListener('click',()=>{if(curStep>0)goToStep(curStep-1,-1);});
+
+document.addEventListener('keydown',e=>{
+  if(e.target.tagName==='INPUT')return;
+  if(e.key==='ArrowRight'&&!e.shiftKey){e.preventDefault();nextEvt();}
+  if(e.key==='ArrowLeft'&&!e.shiftKey){e.preventDefault();prevEvt();}
+  if(e.key==='ArrowDown'){e.preventDefault();nextEvt();}
+  if(e.key==='ArrowUp'){e.preventDefault();prevEvt();}
+  if(e.key==='ArrowRight'&&e.shiftKey){e.preventDefault();if(curStep<STEPS.length-1)goToStep(curStep+1,-1);}
+  if(e.key==='ArrowLeft'&&e.shiftKey){e.preventDefault();if(curStep>0)goToStep(curStep-1,-1);}
+});
+
+// ══ IntersectionObserver for non-seq sections ══
+const io=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(!e.isIntersecting)return;
+    if(e.target.id==='section-class')updProg(0);
+    if(e.target.id==='section-fullseq')updProg(PROG.length-2);
+    if(e.target.id==='section-erd')updProg(PROG.length-1);
+  });
+},{threshold:0.15});
+['section-class','section-fullseq','section-erd'].forEach(id=>{const el=document.getElementById(id);if(el)io.observe(el);});
+
+// ══ FULL SEQ SVG ══
+document.getElementById('full-seq-wrap').innerHTML=`<svg width="100%" viewBox="0 0 800 1640" xmlns="http://www.w3.org/2000/svg" style="font-family:'Noto Sans KR',sans-serif;min-width:640px;">
+<defs><marker id="fa" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+<rect x="8" y="8" width="74" height="40" rx="4" fill="#f1efe8" stroke="#5f5e5a" stroke-width="1"/><text x="45" y="32" text-anchor="middle" font-size="11" fill="#444441" font-weight="600">User</text>
+<rect x="92" y="8" width="86" height="40" rx="4" fill="#e6f1fb" stroke="#185fa5" stroke-width="1"/><text x="135" y="24" text-anchor="middle" font-size="9.5" fill="#0c447c" font-weight="600">Selection</text><text x="135" y="38" text-anchor="middle" font-size="9.5" fill="#0c447c" font-weight="600">Front</text>
+<rect x="188" y="8" width="86" height="40" rx="4" fill="#e6f1fb" stroke="#185fa5" stroke-width="1"/><text x="231" y="24" text-anchor="middle" font-size="9.5" fill="#0c447c" font-weight="600">Thema</text><text x="231" y="38" text-anchor="middle" font-size="9.5" fill="#0c447c" font-weight="600">Front</text>
+<rect x="284" y="8" width="86" height="40" rx="4" fill="#e0f4f2" stroke="#0f6e56" stroke-width="1"/><text x="327" y="24" text-anchor="middle" font-size="9.5" fill="#085041" font-weight="600">Backend</text><text x="327" y="38" text-anchor="middle" font-size="9.5" fill="#085041" font-weight="600">FastAPI</text>
+<rect x="380" y="8" width="86" height="40" rx="4" fill="#e0f4f2" stroke="#0f6e56" stroke-width="1"/><text x="423" y="24" text-anchor="middle" font-size="9.5" fill="#085041" font-weight="600">Curation</text><text x="423" y="38" text-anchor="middle" font-size="9.5" fill="#085041" font-weight="600">Service</text>
+<rect x="476" y="8" width="86" height="40" rx="4" fill="#eeebff" stroke="#534ab7" stroke-width="1"/><text x="519" y="24" text-anchor="middle" font-size="9.5" fill="#3c3489" font-weight="600">Artwork</text><text x="519" y="38" text-anchor="middle" font-size="9.5" fill="#3c3489" font-weight="600">Repository</text>
+<rect x="572" y="8" width="86" height="40" rx="4" fill="#eeebff" stroke="#534ab7" stroke-width="1"/><text x="615" y="24" text-anchor="middle" font-size="9.5" fill="#3c3489" font-weight="600">DB</text><text x="615" y="38" text-anchor="middle" font-size="9.5" fill="#3c3489" font-weight="600">PostgreSQL</text>
+<line x1="45" y1="48" x2="45" y2="1610" stroke="#dde0ee" stroke-width=".8" stroke-dasharray="4 3"/><line x1="135" y1="48" x2="135" y2="1610" stroke="#dde0ee" stroke-width=".8" stroke-dasharray="4 3"/><line x1="231" y1="48" x2="231" y2="1610" stroke="#dde0ee" stroke-width=".8" stroke-dasharray="4 3"/><line x1="327" y1="48" x2="327" y2="1610" stroke="#dde0ee" stroke-width=".8" stroke-dasharray="4 3"/><line x1="423" y1="48" x2="423" y2="1610" stroke="#dde0ee" stroke-width=".8" stroke-dasharray="4 3"/><line x1="519" y1="48" x2="519" y2="1610" stroke="#dde0ee" stroke-width=".8" stroke-dasharray="4 3"/><line x1="615" y1="48" x2="615" y2="1610" stroke="#dde0ee" stroke-width=".8" stroke-dasharray="4 3"/>
+<rect x="41" y="68" width="8" height="1480" rx="2" fill="#5f5e5a" opacity=".18"/><rect x="131" y="74" width="8" height="108" rx="2" fill="#185fa5" opacity=".28"/><rect x="227" y="192" width="8" height="370" rx="2" fill="#185fa5" opacity=".28"/><rect x="323" y="304" width="8" height="1030" rx="2" fill="#0f6e56" opacity=".28"/><rect x="419" y="456" width="8" height="560" rx="2" fill="#0f6e56" opacity=".28"/><rect x="515" y="618" width="8" height="510" rx="2" fill="#534ab7" opacity=".28"/><rect x="611" y="658" width="8" height="434" rx="2" fill="#534ab7" opacity=".28"/>
+<rect x="4" y="60" width="190" height="12" rx="2" fill="#eceef8"/><text x="8" y="70" font-size="8.5" fill="#8b91b0" font-family="JetBrains Mono,monospace">STEP 1  관람 진입</text>
+<line x1="53" y1="84" x2="127" y2="84" stroke="#2d3142" stroke-width="1.1" marker-end="url(#fa)"/><text x="90" y="80" text-anchor="middle" font-size="9" fill="#2d3142">관람 방식 클릭</text>
+<path d="M139,94 Q158,94 158,107 Q158,120 139,120" fill="none" stroke="#2d3142" stroke-width="1.1" marker-end="url(#fa)"/><text x="162" y="110" font-size="9" fill="#4a4f6a">themaView JSON 생성</text>
+<line x1="139" y1="134" x2="223" y2="134" stroke="#2d3142" stroke-width="1.1" marker-end="url(#fa)"/><text x="181" y="130" text-anchor="middle" font-size="9" fill="#2d3142">sendViewMode(JSON)</text>
+<rect x="4" y="146" width="190" height="12" rx="2" fill="#eceef8"/><text x="8" y="156" font-size="8.5" fill="#8b91b0" font-family="JetBrains Mono,monospace">STEP 2  UI 구성</text>
+<path d="M235,168 Q258,168 258,181 Q258,194 235,194" fill="none" stroke="#2d3142" stroke-width="1.1" marker-end="url(#fa)"/><text x="262" y="184" font-size="9" fill="#4a4f6a">themaView == 2 확인</text>
+<path d="M235,206 Q258,206 258,219 Q258,232 235,232" fill="none" stroke="#2d3142" stroke-width="1.1" marker-end="url(#fa)"/><text x="262" y="222" font-size="9" fill="#4a4f6a">배열 정의</text>
+<path d="M235,244 Q258,244 258,257 Q258,270 235,270" fill="none" stroke="#2d3142" stroke-width="1.1" marker-end="url(#fa)"/><text x="262" y="260" font-size="9" fill="#4a4f6a">handleClick, getButtonStyle 정의</text>
+<line x1="227" y1="282" x2="53" y2="282" stroke="#2d3142" stroke-width="1.1" stroke-dasharray="4 3" marker-end="url(#fa)"/><text x="140" y="278" text-anchor="middle" font-size="9" fill="#2d3142">테마 옵션 UI 렌더링</text>
+<rect x="4" y="292" width="190" height="12" rx="2" fill="#eceef8"/><text x="8" y="302" font-size="8.5" fill="#8b91b0" font-family="JetBrains Mono,monospace">STEP 3  선택 조합</text>
+<line x1="53" y1="316" x2="223" y2="316" stroke="#2d3142" stroke-width="1.1" marker-end="url(#fa)"/><text x="138" y="312" text-anchor="middle" font-size="9" fill="#2d3142">버튼 클릭 (테마·시대·감정)</text>
+<path d="M235,326 Q258,326 258,339 Q258,352 235,352" fill="none" stroke="#2d3142" stroke-width="1.1" marker-end="url(#fa)"/><text x="262" y="342" font-size="9" fill="#4a4f6a">selected* 상태 저장</text>
+<path d="M235,364 Q258,364 258,377 Q258,390 235,377" fill="none" stroke="#2d3142" stroke-width="1.1" marker-end="url(#fa)"/><text x="262" y="379" font-size="9" fill="#4a4f6a">handleSubmit: finalData 조합</text>
+<rect x="4" y="400" width="220" height="12" rx="2" fill="#eceef8"/><text x="8" y="410" font-size="8.5" fill="#8b91b0" font-family="JetBrains Mono,monospace">STEP 4-A  알고리즘 진입</text>
+<line x1="235" y1="422" x2="319" y2="422" stroke="#2d3142" stroke-width="1.1" marker-end="url(#fa)"/><text x="277" y="418" text-anchor="middle" font-size="9" fill="#2d3142">POST /api/v1/curation/select</text>
+<path d="M331,432 Q352,432 352,445 Q352,458 331,458" fill="none" stroke="#2d3142" stroke-width="1.1" marker-end="url(#fa)"/><text x="356" y="448" font-size="9" fill="#4a4f6a">CORS 미들웨어 검증</text>
+<line x1="331" y1="470" x2="415" y2="470" stroke="#2d3142" stroke-width="1.1" marker-end="url(#fa)"/><text x="373" y="466" text-anchor="middle" font-size="9" fill="#2d3142">curate_artworks(UserChoice)</text>
+<path d="M427,480 Q448,480 448,493 Q448,506 427,506" fill="none" stroke="#2d3142" stroke-width="1.1" marker-end="url(#fa)"/><text x="452" y="496" font-size="9" fill="#4a4f6a">THEMA_X_MAP, user_x 산출</text>
+<path d="M427,518 Q448,518 448,531 Q448,544 427,544" fill="none" stroke="#2d3142" stroke-width="1.1" marker-end="url(#fa)"/><text x="452" y="534" font-size="9" fill="#4a4f6a">get_emotion_y() → user_y</text>
+<rect x="4" y="554" width="220" height="12" rx="2" fill="#eceef8"/><text x="8" y="564" font-size="8.5" fill="#8b91b0" font-family="JetBrains Mono,monospace">STEP 4-B  작품 정렬</text>
+<line x1="427" y1="576" x2="511" y2="576" stroke="#2d3142" stroke-width="1.1" marker-end="url(#fa)"/><text x="469" y="572" text-anchor="middle" font-size="9" fill="#2d3142">fetch_all_artworks()</text>
+<path d="M523,586 Q544,586 544,599 Q544,612 523,612" fill="none" stroke="#2d3142" stroke-width="1.1" marker-end="url(#fa)"/><text x="548" y="602" font-size="9" fill="#4a4f6a">asyncpg.connect TCP/IP</text>
+<line x1="523" y1="626" x2="607" y2="626" stroke="#2d3142" stroke-width="1.1" marker-end="url(#fa)"/><text x="565" y="622" text-anchor="middle" font-size="9" fill="#2d3142">SELECT * FROM artworks</text>
+<path d="M619,636 Q640,636 640,649 Q640,662 619,662" fill="none" stroke="#2d3142" stroke-width="1.1" marker-end="url(#fa)"/><text x="644" y="652" font-size="9" fill="#4a4f6a">전체 작품 반환</text>
+<line x1="611" y1="674" x2="527" y2="674" stroke="#2d3142" stroke-width="1.1" stroke-dasharray="4 3" marker-end="url(#fa)"/><text x="569" y="670" text-anchor="middle" font-size="9" fill="#2d3142">Artwork[] 반환</text>
+<line x1="515" y1="688" x2="431" y2="688" stroke="#2d3142" stroke-width="1.1" stroke-dasharray="4 3" marker-end="url(#fa)"/><text x="473" y="684" text-anchor="middle" font-size="9" fill="#2d3142">artworks[] 전달</text>
+<path d="M427,700 Q448,700 448,713 Q448,726 427,726" fill="none" stroke="#2d3142" stroke-width="1.1" marker-end="url(#fa)"/><text x="452" y="716" font-size="9" fill="#4a4f6a">calculate_match_score()</text>
+<path d="M427,738 Q448,738 448,751 Q448,764 427,764" fill="none" stroke="#2d3142" stroke-width="1.1" marker-end="url(#fa)"/><text x="452" y="754" font-size="9" fill="#4a4f6a">calculate_vector_distance()</text>
+<path d="M427,776 Q448,776 448,789 Q448,802 427,802" fill="none" stroke="#2d3142" stroke-width="1.1" marker-end="url(#fa)"/><text x="452" y="792" font-size="9" fill="#4a4f6a">sort_artworks() 4단계 정렬</text>
+<path d="M427,814 Q448,814 448,827 Q448,840 427,840" fill="none" stroke="#2d3142" stroke-width="1.1" marker-end="url(#fa)"/><text x="452" y="830" font-size="9" fill="#4a4f6a">extract_final_ids() → INT[]</text>
+<line x1="427" y1="854" x2="511" y2="854" stroke="#2d3142" stroke-width="1.1" marker-end="url(#fa)"/><text x="469" y="850" text-anchor="middle" font-size="9" fill="#2d3142">fetch_artworks_by_ids(INT[])</text>
+<line x1="523" y1="868" x2="607" y2="868" stroke="#2d3142" stroke-width="1.1" marker-end="url(#fa)"/><text x="565" y="864" text-anchor="middle" font-size="9" fill="#2d3142">WHERE id=ANY ORDER BY array_position</text>
+<path d="M619,878 Q640,878 640,891 Q640,904 619,904" fill="none" stroke="#2d3142" stroke-width="1.1" marker-end="url(#fa)"/><text x="644" y="894" font-size="9" fill="#4a4f6a">정렬 쿼리 실행</text>
+<line x1="611" y1="916" x2="527" y2="916" stroke="#2d3142" stroke-width="1.1" stroke-dasharray="4 3" marker-end="url(#fa)"/><text x="569" y="912" text-anchor="middle" font-size="9" fill="#2d3142">batchedlist JSON[] 반환</text>
+<path d="M523,928 Q544,928 544,941 Q544,954 523,954" fill="none" stroke="#2d3142" stroke-width="1.1" marker-end="url(#fa)"/><text x="548" y="944" font-size="9" fill="#4a4f6a">save_layout() 저장</text>
+<path d="M523,966 Q544,966 544,979 Q544,992 523,992" fill="none" stroke="#2d3142" stroke-width="1.1" marker-end="url(#fa)"/><text x="548" y="982" font-size="9" fill="#4a4f6a">log_theme_history() 저장</text>
+<line x1="515" y1="1006" x2="431" y2="1006" stroke="#2d3142" stroke-width="1.1" stroke-dasharray="4 3" marker-end="url(#fa)"/><text x="473" y="1002" text-anchor="middle" font-size="9" fill="#2d3142">batchedlist 반환</text>
+<rect x="4" y="1016" width="220" height="12" rx="2" fill="#eceef8"/><text x="8" y="1026" font-size="8.5" fill="#8b91b0" font-family="JetBrains Mono,monospace">STEP 5/6  응답 반환</text>
+<line x1="419" y1="1038" x2="335" y2="1038" stroke="#2d3142" stroke-width="1.1" stroke-dasharray="4 3" marker-end="url(#fa)"/><text x="377" y="1034" text-anchor="middle" font-size="9" fill="#2d3142">RecommendationResponse 반환</text>
+<path d="M331,1050 Q352,1050 352,1063 Q352,1076 331,1076" fill="none" stroke="#2d3142" stroke-width="1.1" marker-end="url(#fa)"/><text x="356" y="1066" font-size="9" fill="#4a4f6a">Pydantic JSON 직렬화</text>
+<path d="M331,1088 Q352,1088 352,1101 Q352,1114 331,1114" fill="none" stroke="#2d3142" stroke-width="1.1" marker-end="url(#fa)"/><text x="356" y="1104" font-size="9" fill="#4a4f6a">POST /api/v1/log/theme-history</text>
+<line x1="323" y1="1128" x2="239" y2="1128" stroke="#2d3142" stroke-width="1.1" stroke-dasharray="4 3" marker-end="url(#fa)"/><text x="281" y="1124" text-anchor="middle" font-size="9" fill="#2d3142">HTTP 200 {final_id_list}</text>
+<path d="M235,1140 Q256,1140 256,1153 Q256,1166 235,1166" fill="none" stroke="#2d3142" stroke-width="1.1" marker-end="url(#fa)"/><text x="260" y="1156" font-size="9" fill="#4a4f6a">3DGS 갤러리 슬롯 렌더링</text>
+<line x1="227" y1="1180" x2="53" y2="1180" stroke="#2d3142" stroke-width="1.1" stroke-dasharray="4 3" marker-end="url(#fa)"/><text x="140" y="1176" text-anchor="middle" font-size="9" fill="#2d3142">재배치된 3DGS 갤러리 표시</text>
+<rect x="4" y="1196" width="658" height="12" rx="2" fill="#fdf0ec"/><text x="8" y="1206" font-size="8.5" fill="#c0392b" font-family="JetBrains Mono,monospace">ALT  오류 처리</text>
+<rect x="4" y="1210" width="658" height="244" rx="4" fill="none" stroke="#c0392b" stroke-width=".8" stroke-dasharray="5 3"/>
+<line x1="235" y1="1226" x2="319" y2="1226" stroke="#c0392b" stroke-width="1.1" marker-end="url(#fa)"/><text x="277" y="1222" text-anchor="middle" font-size="9" fill="#c0392b">POST /api/v1/curation/select</text>
+<path d="M331,1236 Q352,1236 352,1249 Q352,1262 331,1262" fill="none" stroke="#c0392b" stroke-width="1.1" marker-end="url(#fa)"/><text x="356" y="1252" font-size="9" fill="#c0392b">오류 감지 (try-except)</text>
+<path d="M331,1274 Q352,1274 352,1287 Q352,1300 331,1300" fill="none" stroke="#c0392b" stroke-width="1.1" marker-end="url(#fa)"/><text x="356" y="1290" font-size="9" fill="#c0392b">Fallback: Default 배치 로드</text>
+<line x1="331" y1="1314" x2="607" y2="1314" stroke="#c0392b" stroke-width="1.1" stroke-dasharray="3 3" marker-end="url(#fa)"/><text x="469" y="1310" text-anchor="middle" font-size="9" fill="#c0392b">GET /api/v1/artwork/default</text>
+<line x1="607" y1="1330" x2="335" y2="1330" stroke="#c0392b" stroke-width="1.1" stroke-dasharray="4 3" marker-end="url(#fa)"/><text x="471" y="1326" text-anchor="middle" font-size="9" fill="#c0392b">Default layout_id 반환</text>
+<line x1="323" y1="1346" x2="239" y2="1346" stroke="#c0392b" stroke-width="1.1" stroke-dasharray="4 3" marker-end="url(#fa)"/><text x="281" y="1342" text-anchor="middle" font-size="9" fill="#c0392b">HTTP 200 (status: fallback)</text>
+<path d="M235,1358 Q256,1358 256,1371 Q256,1384 235,1384" fill="none" stroke="#c0392b" stroke-width="1.1" marker-end="url(#fa)"/><text x="260" y="1374" font-size="9" fill="#c0392b">오류 모달 표시</text>
+<line x1="227" y1="1398" x2="53" y2="1398" stroke="#c0392b" stroke-width="1.1" stroke-dasharray="4 3" marker-end="url(#fa)"/><text x="140" y="1394" text-anchor="middle" font-size="9" fill="#c0392b">기본 전시로 자동 입장</text>
+<rect x="4" y="1468" width="658" height="80" rx="4" fill="#f5f6fb" stroke="#dde0ee" stroke-width=".8"/>
+<text x="12" y="1486" font-size="10" fill="#0f1117" font-weight="600" font-family="JetBrains Mono,monospace">범례</text>
+<line x1="12" y1="1500" x2="56" y2="1500" stroke="#2d3142" stroke-width="1.1" marker-end="url(#fa)"/><text x="62" y="1504" font-size="9" fill="#4a4f6a">동기 요청 (메서드 호출 / HTTP)</text>
+<line x1="12" y1="1518" x2="56" y2="1518" stroke="#2d3142" stroke-width="1.1" stroke-dasharray="4 3" marker-end="url(#fa)"/><text x="62" y="1522" font-size="9" fill="#4a4f6a">응답 반환 (return / HTTP response)</text>
+<path d="M12,1530 Q28,1530 28,1541 Q28,1552 12,1552" fill="none" stroke="#2d3142" stroke-width="1.1" marker-end="url(#fa)"/><text x="34" y="1546" font-size="9" fill="#4a4f6a">자기 호출 (내부 처리)</text>
+<rect x="340" y="1488" width="10" height="10" rx="2" fill="#185fa5" opacity=".5"/><text x="356" y="1497" font-size="9" fill="#4a4f6a">Frontend</text>
+<rect x="340" y="1506" width="10" height="10" rx="2" fill="#0f6e56" opacity=".5"/><text x="356" y="1515" font-size="9" fill="#4a4f6a">Backend</text>
+<rect x="340" y="1524" width="10" height="10" rx="2" fill="#534ab7" opacity=".5"/><text x="356" y="1533" font-size="9" fill="#4a4f6a">DB Layer</text>
+<rect x="450" y="1488" width="10" height="10" rx="2" fill="#c0392b" opacity=".5"/><text x="466" y="1497" font-size="9" fill="#4a4f6a">대안 흐름 (Fallback)</text>
+</svg>`;
+
+// ══ INIT ══
+document.getElementById('total-s').textContent=STEPS.length;
+goToStep(0,-1);
+</script>
+</body>
+</html>
