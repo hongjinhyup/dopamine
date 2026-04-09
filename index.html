@@ -375,50 +375,40 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--surface);color:var(-
 <div id="section-seq" style="scroll-margin-top:var(--bar-h);">
   <div class="section-title-bar" id="seq-title-bar">
     <span class="section-num">4</span>
-    <span class="section-name">시퀀스 다이어그램</span>
+    <span class="section-name">시퀀스 다이어그램 — 세부 보기</span>
   </div>
 
-  <!-- scroll-pin wrapper: sticky viewer + spacer -->
-  <div class="seq-scroll-pin-outer" id="seq-pin-outer">
-    <div class="seq-fixed-viewer" id="seq-viewer">
-      <!-- Step title -->
-      <div class="seq-step-title">
-        <span class="step-badge badge-sys" id="step-badge">INTRO</span>
-        <span class="seq-step-name" id="step-name">시스템 개요</span>
-        <span class="seq-step-desc" id="step-desc">7개 액터의 역할과 전체 데이터 흐름을 확인합니다.</span>
+  <!-- Simple viewer (no scroll-pin) -->
+  <div class="seq-fixed-viewer" id="seq-viewer">
+    <div class="seq-step-title">
+      <span class="step-badge badge-sys" id="step-badge">INTRO</span>
+      <span class="seq-step-name" id="step-name">시스템 개요</span>
+      <span class="seq-step-desc" id="step-desc">7개 액터의 역할과 전체 데이터 흐름을 확인합니다.</span>
+    </div>
+    <div class="seq-content">
+      <div class="seq-flow-panel" id="flow-panel">
+        <div class="flow-panel-title">순차 흐름</div>
+        <div id="flow-items"></div>
       </div>
-
-      <!-- Content: left panel + right SVG -->
-      <div class="seq-content">
-        <div class="seq-flow-panel" id="flow-panel">
-          <div class="flow-panel-title">순차 흐름</div>
-          <div id="flow-items"></div>
-        </div>
-        <div class="seq-svg-panel">
-          <svg id="main-svg" viewBox="0 0 680 500" xmlns="http://www.w3.org/2000/svg"
-               style="font-family:'Noto Sans KR',sans-serif;width:100%;height:100%;position:absolute;top:0;left:0;"></svg>
-        </div>
-      </div>
-
-      <!-- Nav bar -->
-      <div class="seq-nav-bar">
-        <div class="nav-hint">
-          <span class="key-badge">←</span><span class="key-badge">→</span>&nbsp;이전/다음 이벤트
-          &nbsp;|&nbsp;<span class="key-badge">Shift+→</span>&nbsp;다음 단계
-          &nbsp;|&nbsp;<span class="key-badge">↓</span>&nbsp;스크롤로 이동
-        </div>
-        <div class="nav-btn-group">
-          <button class="nav-btn" id="btn-ps" title="이전 단계">«</button>
-          <button class="nav-btn" id="btn-pe" title="이전 이벤트">‹</button>
-          <span class="nav-progress-text" id="nav-prog">1 / 8</span>
-          <button class="nav-btn" id="btn-ne" title="다음 이벤트">›</button>
-          <button class="nav-btn" id="btn-ns" title="다음 단계">»</button>
-        </div>
-        <div class="nav-hint">총 <strong id="total-s" style="margin:0 3px;"></strong> 단계</div>
+      <div class="seq-svg-panel">
+        <svg id="main-svg" viewBox="0 0 680 500" xmlns="http://www.w3.org/2000/svg"
+             style="font-family:'Noto Sans KR',sans-serif;width:100%;height:100%;position:absolute;top:0;left:0;"></svg>
       </div>
     </div>
-    <!-- spacer: page can be scrolled while viewer is sticky -->
-    <div class="seq-scroll-spacer"></div>
+    <div class="seq-nav-bar">
+      <div class="nav-hint">
+        <span class="key-badge">←</span><span class="key-badge">→</span>&nbsp;이전/다음 이벤트
+        &nbsp;|&nbsp;<span class="key-badge">Shift+→</span>&nbsp;다음 단계
+      </div>
+      <div class="nav-btn-group">
+        <button class="nav-btn" id="btn-ps" title="이전 단계">«</button>
+        <button class="nav-btn" id="btn-pe" title="이전 이벤트">‹</button>
+        <span class="nav-progress-text" id="nav-prog">1 / 8</span>
+        <button class="nav-btn" id="btn-ne" title="다음 이벤트">›</button>
+        <button class="nav-btn" id="btn-ns" title="다음 단계">»</button>
+      </div>
+      <div class="nav-hint">총 <strong id="total-s" style="margin:0 3px;"></strong> 단계</div>
+    </div>
   </div>
 </div>
 
@@ -457,30 +447,29 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--surface);color:var(-
 
       <!-- ── USERS table ── -->
       <g id="erd-users">
-        <rect x="20" y="20" width="220" height="178" rx="5" fill="white" stroke="#185fa5" stroke-width="1.5"/>
-        <rect x="20" y="20" width="220" height="32" rx="5" fill="#e6f1fb" stroke="#185fa5" stroke-width="1.5"/>
-        <text x="130" y="41" text-anchor="middle" font-size="13" font-weight="700" fill="#0c447c" font-family="JetBrains Mono,monospace">USERS</text>
-        <!-- rows -->
-        <line x1="20" y1="52" x2="240" y2="52" stroke="#dde0ee"/>
-        <rect x="22" y="54" width="216" height="20" rx="2" fill="#fff9e6"/>
-        <text x="30" y="68" font-size="10" fill="#b36f00" font-family="JetBrains Mono,monospace">PK</text>
-        <text x="60" y="68" font-size="10.5" fill="#2d3142">user_id</text>
-        <text x="180" y="68" font-size="10" fill="#8b91b0" font-family="JetBrains Mono,monospace">INT</text>
-        <line x1="20" y1="74" x2="240" y2="74" stroke="#f0f0f8"/>
-        <text x="60" y="90" font-size="10.5" fill="#2d3142">provider</text>
-        <text x="176" y="90" font-size="10" fill="#8b91b0" font-family="JetBrains Mono,monospace">VARCHAR</text>
-        <line x1="20" y1="96" x2="240" y2="96" stroke="#f0f0f8"/>
-        <text x="60" y="112" font-size="10.5" fill="#2d3142">email</text>
-        <text x="176" y="112" font-size="10" fill="#8b91b0" font-family="JetBrains Mono,monospace">VARCHAR</text>
-        <line x1="20" y1="118" x2="240" y2="118" stroke="#f0f0f8"/>
-        <text x="60" y="134" font-size="10.5" fill="#2d3142">password_hash</text>
-        <text x="176" y="134" font-size="10" fill="#8b91b0" font-family="JetBrains Mono,monospace">VARCHAR</text>
-        <line x1="20" y1="140" x2="240" y2="140" stroke="#f0f0f8"/>
-        <text x="60" y="156" font-size="10.5" fill="#2d3142">created_at</text>
-        <text x="164" y="156" font-size="10" fill="#8b91b0" font-family="JetBrains Mono,monospace">TIMESTAMP</text>
-        <line x1="20" y1="162" x2="240" y2="162" stroke="#f0f0f8"/>
-        <text x="60" y="178" font-size="10.5" fill="#2d3142">updated_at</text>
-        <text x="164" y="178" font-size="10" fill="#8b91b0" font-family="JetBrains Mono,monospace">TIMESTAMP</text>
+        <rect x="20" y="80" width="220" height="178" rx="5" fill="white" stroke="#185fa5" stroke-width="1.5"/>
+        <rect x="20" y="80" width="220" height="32" rx="5" fill="#e6f1fb" stroke="#185fa5" stroke-width="1.5"/>
+        <text x="130" y="101" text-anchor="middle" font-size="13" font-weight="700" fill="#0c447c" font-family="JetBrains Mono,monospace">USERS</text>
+        <line x1="20" y1="112" x2="240" y2="112" stroke="#dde0ee"/>
+        <rect x="22" y="114" width="216" height="20" rx="2" fill="#fff9e6"/>
+        <text x="30" y="128" font-size="10" fill="#b36f00" font-family="JetBrains Mono,monospace">PK</text>
+        <text x="60" y="128" font-size="10.5" fill="#2d3142">user_id</text>
+        <text x="180" y="128" font-size="10" fill="#8b91b0" font-family="JetBrains Mono,monospace">INT</text>
+        <line x1="20" y1="134" x2="240" y2="134" stroke="#f0f0f8"/>
+        <text x="60" y="150" font-size="10.5" fill="#2d3142">provider</text>
+        <text x="176" y="150" font-size="10" fill="#8b91b0" font-family="JetBrains Mono,monospace">VARCHAR</text>
+        <line x1="20" y1="166" x2="240" y2="166" stroke="#f0f0f8"/>
+        <text x="60" y="182" font-size="10.5" fill="#2d3142">email</text>
+        <text x="176" y="182" font-size="10" fill="#8b91b0" font-family="JetBrains Mono,monospace">VARCHAR</text>
+        <line x1="20" y1="198" x2="240" y2="198" stroke="#f0f0f8"/>
+        <text x="60" y="214" font-size="10.5" fill="#2d3142">password_hash</text>
+        <text x="176" y="214" font-size="10" fill="#8b91b0" font-family="JetBrains Mono,monospace">VARCHAR</text>
+        <line x1="20" y1="230" x2="240" y2="230" stroke="#f0f0f8"/>
+        <text x="60" y="246" font-size="10.5" fill="#2d3142">created_at</text>
+        <text x="164" y="246" font-size="10" fill="#8b91b0" font-family="JetBrains Mono,monospace">TIMESTAMP</text>
+        <line x1="20" y1="252" x2="240" y2="252" stroke="#f0f0f8"/>
+        <text x="60" y="268" font-size="10.5" fill="#2d3142">updated_at</text>
+        <text x="164" y="268" font-size="10" fill="#8b91b0" font-family="JetBrains Mono,monospace">TIMESTAMP</text>
       </g>
 
       <!-- ── ARTWORKS table ── -->
@@ -532,8 +521,8 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--surface);color:var(-
         <text x="60" y="350" font-size="10.5" fill="#2d3142">user_id</text>
         <text x="195" y="350" font-size="10" fill="#8b91b0" font-family="JetBrains Mono,monospace">INT</text>
         <line x1="20" y1="356" x2="250" y2="356" stroke="#f0f0f8"/>
-        <text x="60" y="372" font-size="10.5" fill="#2d3142">final_id_list</text>
-        <text x="175" y="372" font-size="10" fill="#8b91b0" font-family="JetBrains Mono,monospace">INT[]</text>
+        <text x="60" y="372" font-size="10.5" fill="#2d3142">RecommendationResponse</text>
+        <text x="175" y="372" font-size="10" fill="#8b91b0" font-family="JetBrains Mono,monospace">JSON</text>
         <line x1="20" y1="378" x2="250" y2="378" stroke="#f0f0f8"/>
         <text x="60" y="394" font-size="10.5" fill="#2d3142">status</text>
         <text x="175" y="394" font-size="10" fill="#8b91b0" font-family="JetBrains Mono,monospace">VARCHAR</text>
@@ -644,24 +633,24 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--surface);color:var(-
       <!-- ══ RELATIONSHIPS ══ -->
 
       <!-- USERS ||--o{ GALLERY_LAYOUT (user_id FK) -->
-      <line x1="130" y1="198" x2="130" y2="278" stroke="#534ab7" stroke-width="1.5" marker-end="url(#erd-many)" marker-start="url(#erd-one)"/>
-      <text x="136" y="244" font-size="9.5" fill="#534ab7">1 : N</text>
+      <line x1="130" y1="258" x2="130" y2="280" stroke="#534ab7" stroke-width="1.5" marker-end="url(#erd-many)" marker-start="url(#erd-one)"/>
+      <text x="136" y="274" font-size="9.5" fill="#534ab7">1 : N</text>
 
       <!-- USERS ||--o{ THEME_HISTORY_LOG (user_id FK) -->
-      <path d="M240 130 Q620 130 680 340" fill="none" stroke="#534ab7" stroke-width="1.3" stroke-dasharray="6 3" marker-end="url(#erd-many)" marker-start="url(#erd-one)"/>
+      <path d="M240 200 Q620 130 680 340" fill="none" stroke="#534ab7" stroke-width="1.3" stroke-dasharray="6 3" marker-end="url(#erd-many)" marker-start="url(#erd-one)"/>
       <text x="450" y="118" font-size="9.5" fill="#534ab7">1 : N</text>
 
       <!-- GALLERY_LAYOUT ||--o{ GALLERY_LAYOUT_ARTWORKS (layout_id FK) -->
-      <line x1="250" y1="380" x2="308" y2="430" stroke="#534ab7" stroke-width="1.5" marker-end="url(#erd-many)" marker-start="url(#erd-one)"/>
-      <text x="220" y="416" font-size="9.5" fill="#534ab7">1 : N</text>
+      <line x1="250" y1="340" x2="310" y2="400" stroke="#534ab7" stroke-width="1.5" marker-end="url(#erd-many)" marker-start="url(#erd-one)"/>
+      <text x="220" y="380" font-size="9.5" fill="#534ab7">1 : N</text>
 
       <!-- ARTWORKS ||--o{ GALLERY_LAYOUT_ARTWORKS (artwork_id FK) -->
       <line x1="515" y1="242" x2="490" y2="378" stroke="#0f6e56" stroke-width="1.5" marker-end="url(#erd-many)" marker-start="url(#erd-one)"/>
       <text x="530" y="310" font-size="9.5" fill="#0f6e56">1 : N</text>
 
       <!-- GALLERY_LAYOUT ||--o| THEME_HISTORY_LOG (layout_id FK) -->
-      <path d="M250 370 Q465 370 680 392" fill="none" stroke="#c0392b" stroke-width="1.3" stroke-dasharray="6 3" marker-end="url(#erd-many)" marker-start="url(#erd-one)"/>
-      <text x="445" y="362" font-size="9.5" fill="#c0392b">1 : N</text>
+      <path d="M250 340 Q465 340 680 380" fill="none" stroke="#c0392b" stroke-width="1.3" stroke-dasharray="6 3" marker-end="url(#erd-many)" marker-start="url(#erd-one)"/>
+      <text x="445" y="330" font-size="9.5" fill="#c0392b">1 : N</text>
 
       <!-- ══ LEGEND ══ -->
       <g transform="translate(20,590)">
@@ -741,19 +730,17 @@ const STEPS=[
     {type:'self',who:4,label:'calculate_vector_distance()',flowText:'CurationService : calculate_vector_distance() — 유클리드 거리 계산'},
     {type:'self',who:4,label:'sort_artworks() 4단계 정렬',flowText:'CurationService : sort_artworks() — score↓ dist↑ intensity↑ year↑'},
     {type:'self',who:4,label:'extract_final_ids() → INT[]',flowText:'CurationService : extract_final_ids() → INT[]'},
-    {type:'arrow',from:4,to:5,label:'fetch_artworks_by_ids(INT[])',flowText:'CurationService → ArtworkRepo : fetch_artworks_by_ids(INT[])'},
-    {type:'arrow',from:5,to:6,label:'WHERE id=ANY\nORDER BY array_position',flowText:'ArtworkRepo → PostgreSQL : WHERE id=ANY(…) ORDER BY array_position'},
-    {type:'self',who:6,label:'정렬 순서 유지 쿼리 실행',flowText:'PostgreSQL : 정렬 순서 유지 쿼리 실행'},
-    {type:'arrow',from:6,to:5,label:'batchedlist JSON[] 반환',dashed:true,flowText:'PostgreSQL → ArtworkRepo : batchedlist JSON[] 반환'},
-    {type:'self',who:5,label:'save_layout() 저장',flowText:'ArtworkRepo : save_layout() → GALLERY_LAYOUT 저장'},
-    {type:'self',who:5,label:'log_theme_history() 저장',flowText:'ArtworkRepo : log_theme_history() → THEME_HISTORY_LOG 저장'},
-    {type:'arrow',from:5,to:4,label:'batchedlist 반환',dashed:true,flowText:'ArtworkRepo → CurationService : batchedlist 반환'},
+    {type:'self',who:4,label:'create_file_URLs()\n→ List<ArtworkResponse>',flowText:'CurationService : create_file_URLs() → List<ArtworkResponse>'},
+    {type:'self',who:4,label:'RecommendationResponse\n(final_artworks)',flowText:'CurationService : RecommendationResponse (final_artworks)'},
+    {type:'self',who:5,label:'save_layout()',flowText:'ArtworkRepo : save_layout() → GALLERY_LAYOUT'},
+    {type:'self',who:5,label:'log_theme_history()',flowText:'ArtworkRepo : log_theme_history() → THEME_HISTORY_LOG'},
+    {type:'arrow',from:5,to:4,label:'저장 완료',dashed:true,flowText:'ArtworkRepo → CurationService : 저장 완료'},
   ]},
   {id:'s56',label:'응답\n반환',badge:'badge-be',badgeText:'STEP 5/6',title:'응답 직렬화 및 갤러리 렌더링',desc:'Backend가 Pydantic으로 직렬화 후 ThemaFront에 응답하고, 3DGS 갤러리 슬롯을 렌더링합니다.',actors:[0,2,3,4],isAlt:false,events:[
     {type:'arrow',from:4,to:3,label:'RecommendationResponse 반환',dashed:true,flowText:'CurationService → Backend : RecommendationResponse 반환'},
     {type:'self',who:3,label:'Pydantic JSON 직렬화',flowText:'Backend : Pydantic JSON 직렬화'},
     {type:'self',who:3,label:'POST /api/v1/log/theme-history',flowText:'Backend : POST /api/v1/log/theme-history'},
-    {type:'arrow',from:3,to:2,label:'HTTP 200 {final_id_list}',dashed:true,flowText:'Backend → ThemaFront : HTTP 200 {final_id_list: [...]}'},
+    {type:'arrow',from:3,to:2,label:'HTTP 200 {RecommendationResponse (final_artworks)}',dashed:true,flowText:'Backend → ThemaFront : HTTP 200 {RecommendationResponse (final_artworks)}'},
     {type:'self',who:2,label:'3DGS 갤러리 슬롯\n렌더링 트리거',flowText:'ThemaFront : 3DGS 갤러리 슬롯 렌더링 트리거'},
     {type:'arrow',from:2,to:0,label:'재배치된 3DGS 갤러리 표시',dashed:true,flowText:'ThemaFront → User : 재배치된 3DGS 갤러리 표시'},
   ]},
@@ -773,7 +760,6 @@ const STEPS=[
 const PROG=[
   {label:'클래스\n다이어그램',sec:'section-class',isAlt:false},
   ...STEPS.map((s,i)=>({label:s.label,sec:'section-seq',stepIdx:i,isAlt:s.isAlt})),
-  {label:'전체\n흐름도',sec:'section-fullseq',isAlt:false},
   {label:'ERD',sec:'section-erd',isAlt:false},
 ];
 const track=document.getElementById('prog-track');
@@ -815,29 +801,6 @@ function scrollToSection(secId){
 // The seq-scroll-spacer is tall. We divide it into STEPS.length bands.
 // When scrolling into each band, we auto-advance the step.
 let scrollStepAdvancing=false;
-function handleScrollPin(){
-  const outer=document.getElementById('seq-pin-outer');
-  const spacer=outer.querySelector('.seq-scroll-spacer');
-  if(!outer||!spacer)return;
-  const barH=document.getElementById('progress-bar').offsetHeight;
-  const outerRect=outer.getBoundingClientRect();
-  // Only activate while outer is in sticky zone
-  if(outerRect.top > barH || outerRect.bottom < window.innerHeight) return;
-  // Scroll position within the outer div
-  const outerTop=outer.getBoundingClientRect().top+window.scrollY - barH;
-  const viewerH=window.innerHeight-barH;
-  const spacerH=spacer.offsetHeight;
-  const scrolled=window.scrollY-(outerTop+viewerH);
-  if(scrolled<0) return;
-  const band=spacerH/Math.max(STEPS.length,1);
-  const targetStep=Math.min(STEPS.length-1,Math.floor(scrolled/band));
-  if(targetStep!==curStep){
-    goToStep(targetStep,-1);
-  }
-}
-
-window.addEventListener('scroll',handleScrollPin,{passive:true});
-
 // SVG BUILDER
 const SVG_NS='http://www.w3.org/2000/svg';
 const W=680, EVT_H=60;
@@ -910,7 +873,7 @@ function buildSVG(step,revealUpTo){
       const t=document.createElementNS(SVG_NS,'text');
       const yb=a.layer?(BOX_H/2+12+(nli-(nameLines.length-1)/2)*13):(BOX_H/2+6+(nli-(nameLines.length-1)/2)*13);
       t.setAttribute('x',x);t.setAttribute('y',yb);
-      t.setAttribute('text-anchor','middle');t.setAttribute('dominant-baseline','central');
+      t.setAttribute('text-anchor','middle');t.setAttribute('dy','.35em');
       t.setAttribute('font-size','12');t.setAttribute('font-weight','600');
       t.setAttribute('fill',step.isAlt?'#c0392b':a.color);
       t.setAttribute('font-family','Noto Sans KR,sans-serif');
@@ -1051,11 +1014,10 @@ const io=new IntersectionObserver(entries=>{
   entries.forEach(e=>{
     if(!e.isIntersecting)return;
     if(e.target.id==='section-class')updProg(0);
-    if(e.target.id==='section-fullseq')updProg(PROG.length-2);
     if(e.target.id==='section-erd')updProg(PROG.length-1);
   });
 },{threshold:0.15});
-['section-class','section-fullseq','section-erd'].forEach(id=>{const el=document.getElementById(id);if(el)io.observe(el);});
+['section-class','section-seq','section-erd'].forEach(id=>{const el=document.getElementById(id);if(el)io.observe(el);});
 
 // ══ FULL SEQ SVG ══
 document.getElementById('full-seq-wrap').innerHTML=`<svg width="100%" viewBox="0 0 800 1640" xmlns="http://www.w3.org/2000/svg" style="font-family:'Noto Sans KR',sans-serif;min-width:640px;">
@@ -1099,39 +1061,38 @@ document.getElementById('full-seq-wrap').innerHTML=`<svg width="100%" viewBox="0
 <path d="M427,738 Q448,738 448,751 Q448,764 427,764" fill="none" stroke="#2d3142" stroke-width="1.1" marker-end="url(#fa)"/><text x="452" y="754" font-size="9" fill="#4a4f6a">calculate_vector_distance()</text>
 <path d="M427,776 Q448,776 448,789 Q448,802 427,802" fill="none" stroke="#2d3142" stroke-width="1.1" marker-end="url(#fa)"/><text x="452" y="792" font-size="9" fill="#4a4f6a">sort_artworks() 4단계 정렬</text>
 <path d="M427,814 Q448,814 448,827 Q448,840 427,840" fill="none" stroke="#2d3142" stroke-width="1.1" marker-end="url(#fa)"/><text x="452" y="830" font-size="9" fill="#4a4f6a">extract_final_ids() → INT[]</text>
-<line x1="427" y1="854" x2="511" y2="854" stroke="#2d3142" stroke-width="1.1" marker-end="url(#fa)"/><text x="469" y="850" text-anchor="middle" font-size="9" fill="#2d3142">fetch_artworks_by_ids(INT[])</text>
-<line x1="523" y1="868" x2="607" y2="868" stroke="#2d3142" stroke-width="1.1" marker-end="url(#fa)"/><text x="565" y="864" text-anchor="middle" font-size="9" fill="#2d3142">WHERE id=ANY ORDER BY array_position</text>
-<path d="M619,878 Q640,878 640,891 Q640,904 619,904" fill="none" stroke="#2d3142" stroke-width="1.1" marker-end="url(#fa)"/><text x="644" y="894" font-size="9" fill="#4a4f6a">정렬 쿼리 실행</text>
-<line x1="611" y1="916" x2="527" y2="916" stroke="#2d3142" stroke-width="1.1" stroke-dasharray="4 3" marker-end="url(#fa)"/><text x="569" y="912" text-anchor="middle" font-size="9" fill="#2d3142">batchedlist JSON[] 반환</text>
-<path d="M523,928 Q544,928 544,941 Q544,954 523,954" fill="none" stroke="#2d3142" stroke-width="1.1" marker-end="url(#fa)"/><text x="548" y="944" font-size="9" fill="#4a4f6a">save_layout() 저장</text>
-<path d="M523,966 Q544,966 544,979 Q544,992 523,992" fill="none" stroke="#2d3142" stroke-width="1.1" marker-end="url(#fa)"/><text x="548" y="982" font-size="9" fill="#4a4f6a">log_theme_history() 저장</text>
-<line x1="515" y1="1006" x2="431" y2="1006" stroke="#2d3142" stroke-width="1.1" stroke-dasharray="4 3" marker-end="url(#fa)"/><text x="473" y="1002" text-anchor="middle" font-size="9" fill="#2d3142">batchedlist 반환</text>
-<rect x="4" y="1016" width="220" height="12" rx="2" fill="#eceef8"/><text x="8" y="1026" font-size="8.5" fill="#8b91b0" font-family="JetBrains Mono,monospace">STEP 5/6  응답 반환</text>
-<line x1="419" y1="1038" x2="335" y2="1038" stroke="#2d3142" stroke-width="1.1" stroke-dasharray="4 3" marker-end="url(#fa)"/><text x="377" y="1034" text-anchor="middle" font-size="9" fill="#2d3142">RecommendationResponse 반환</text>
-<path d="M331,1050 Q352,1050 352,1063 Q352,1076 331,1076" fill="none" stroke="#2d3142" stroke-width="1.1" marker-end="url(#fa)"/><text x="356" y="1066" font-size="9" fill="#4a4f6a">Pydantic JSON 직렬화</text>
-<path d="M331,1088 Q352,1088 352,1101 Q352,1114 331,1114" fill="none" stroke="#2d3142" stroke-width="1.1" marker-end="url(#fa)"/><text x="356" y="1104" font-size="9" fill="#4a4f6a">POST /api/v1/log/theme-history</text>
-<line x1="323" y1="1128" x2="239" y2="1128" stroke="#2d3142" stroke-width="1.1" stroke-dasharray="4 3" marker-end="url(#fa)"/><text x="281" y="1124" text-anchor="middle" font-size="9" fill="#2d3142">HTTP 200 {final_id_list}</text>
-<path d="M235,1140 Q256,1140 256,1153 Q256,1166 235,1166" fill="none" stroke="#2d3142" stroke-width="1.1" marker-end="url(#fa)"/><text x="260" y="1156" font-size="9" fill="#4a4f6a">3DGS 갤러리 슬롯 렌더링</text>
-<line x1="227" y1="1180" x2="53" y2="1180" stroke="#2d3142" stroke-width="1.1" stroke-dasharray="4 3" marker-end="url(#fa)"/><text x="140" y="1176" text-anchor="middle" font-size="9" fill="#2d3142">재배치된 3DGS 갤러리 표시</text>
-<rect x="4" y="1196" width="658" height="12" rx="2" fill="#fdf0ec"/><text x="8" y="1206" font-size="8.5" fill="#c0392b" font-family="JetBrains Mono,monospace">ALT  오류 처리</text>
-<rect x="4" y="1210" width="658" height="244" rx="4" fill="none" stroke="#c0392b" stroke-width=".8" stroke-dasharray="5 3"/>
-<line x1="235" y1="1226" x2="319" y2="1226" stroke="#c0392b" stroke-width="1.1" marker-end="url(#fa)"/><text x="277" y="1222" text-anchor="middle" font-size="9" fill="#c0392b">POST /api/v1/curation/select</text>
-<path d="M331,1236 Q352,1236 352,1249 Q352,1262 331,1262" fill="none" stroke="#c0392b" stroke-width="1.1" marker-end="url(#fa)"/><text x="356" y="1252" font-size="9" fill="#c0392b">오류 감지 (try-except)</text>
-<path d="M331,1274 Q352,1274 352,1287 Q352,1300 331,1300" fill="none" stroke="#c0392b" stroke-width="1.1" marker-end="url(#fa)"/><text x="356" y="1290" font-size="9" fill="#c0392b">Fallback: Default 배치 로드</text>
-<line x1="331" y1="1314" x2="607" y2="1314" stroke="#c0392b" stroke-width="1.1" stroke-dasharray="3 3" marker-end="url(#fa)"/><text x="469" y="1310" text-anchor="middle" font-size="9" fill="#c0392b">GET /api/v1/artwork/default</text>
-<line x1="607" y1="1330" x2="335" y2="1330" stroke="#c0392b" stroke-width="1.1" stroke-dasharray="4 3" marker-end="url(#fa)"/><text x="471" y="1326" text-anchor="middle" font-size="9" fill="#c0392b">Default layout_id 반환</text>
-<line x1="323" y1="1346" x2="239" y2="1346" stroke="#c0392b" stroke-width="1.1" stroke-dasharray="4 3" marker-end="url(#fa)"/><text x="281" y="1342" text-anchor="middle" font-size="9" fill="#c0392b">HTTP 200 (status: fallback)</text>
-<path d="M235,1358 Q256,1358 256,1371 Q256,1384 235,1384" fill="none" stroke="#c0392b" stroke-width="1.1" marker-end="url(#fa)"/><text x="260" y="1374" font-size="9" fill="#c0392b">오류 모달 표시</text>
-<line x1="227" y1="1398" x2="53" y2="1398" stroke="#c0392b" stroke-width="1.1" stroke-dasharray="4 3" marker-end="url(#fa)"/><text x="140" y="1394" text-anchor="middle" font-size="9" fill="#c0392b">기본 전시로 자동 입장</text>
-<rect x="4" y="1468" width="658" height="80" rx="4" fill="#f5f6fb" stroke="#dde0ee" stroke-width=".8"/>
-<text x="12" y="1486" font-size="10" fill="#0f1117" font-weight="600" font-family="JetBrains Mono,monospace">범례</text>
-<line x1="12" y1="1500" x2="56" y2="1500" stroke="#2d3142" stroke-width="1.1" marker-end="url(#fa)"/><text x="62" y="1504" font-size="9" fill="#4a4f6a">동기 요청 (메서드 호출 / HTTP)</text>
-<line x1="12" y1="1518" x2="56" y2="1518" stroke="#2d3142" stroke-width="1.1" stroke-dasharray="4 3" marker-end="url(#fa)"/><text x="62" y="1522" font-size="9" fill="#4a4f6a">응답 반환 (return / HTTP response)</text>
-<path d="M12,1530 Q28,1530 28,1541 Q28,1552 12,1552" fill="none" stroke="#2d3142" stroke-width="1.1" marker-end="url(#fa)"/><text x="34" y="1546" font-size="9" fill="#4a4f6a">자기 호출 (내부 처리)</text>
-<rect x="340" y="1488" width="10" height="10" rx="2" fill="#185fa5" opacity=".5"/><text x="356" y="1497" font-size="9" fill="#4a4f6a">Frontend</text>
-<rect x="340" y="1506" width="10" height="10" rx="2" fill="#0f6e56" opacity=".5"/><text x="356" y="1515" font-size="9" fill="#4a4f6a">Backend</text>
-<rect x="340" y="1524" width="10" height="10" rx="2" fill="#534ab7" opacity=".5"/><text x="356" y="1533" font-size="9" fill="#4a4f6a">DB Layer</text>
-<rect x="450" y="1488" width="10" height="10" rx="2" fill="#c0392b" opacity=".5"/><text x="466" y="1497" font-size="9" fill="#4a4f6a">대안 흐름 (Fallback)</text>
+<path d="M427,854 Q448,854 448,867 Q448,880 427,880" fill="none" stroke="#2d3142" stroke-width="1.1" marker-end="url(#fa)"/><text x="452" y="868" font-size="9" fill="#4a4f6a">create_file_URLs()</text>
+<path d="M427,892 Q448,892 448,905 Q448,918 427,918" fill="none" stroke="#2d3142" stroke-width="1.1" marker-end="url(#fa)"/><text x="452" y="906" font-size="9" fill="#4a4f6a">RecommendationResponse (final_artworks)</text>
+<path d="M427,930 Q448,930 448,943 Q448,956 427,956" fill="none" stroke="#2d3142" stroke-width="1.1" marker-end="url(#fa)"/><text x="452" y="944" font-size="9" fill="#4a4f6a">저장 완료</text>
+<path d="M523,958 Q544,958 544,971 Q544,984 523,984" fill="none" stroke="#2d3142" stroke-width="1.1" marker-end="url(#fa)"/><text x="548" y="972" font-size="9" fill="#4a4f6a">save_layout()</text>
+<path d="M523,996 Q544,996 544,1009 Q544,1022 523,1022" fill="none" stroke="#2d3142" stroke-width="1.1" marker-end="url(#fa)"/><text x="548" y="1010" font-size="9" fill="#4a4f6a">log_theme_history()</text>
+<line x1="515" y1="1036" x2="431" y2="1036" stroke="#2d3142" stroke-width="1.1" stroke-dasharray="4 3" marker-end="url(#fa)"/><text x="473" y="1032" text-anchor="middle" font-size="9" fill="#2d3142">저장 완료</text>
+<rect x="4" y="1046" width="220" height="12" rx="2" fill="#eceef8"/><text x="8" y="1056" font-size="8.5" fill="#8b91b0" font-family="JetBrains Mono,monospace">STEP 5/6  응답 반환</text>
+<line x1="419" y1="1068" x2="335" y2="1068" stroke="#2d3142" stroke-width="1.1" stroke-dasharray="4 3" marker-end="url(#fa)"/><text x="377" y="1064" text-anchor="middle" font-size="9" fill="#2d3142">RecommendationResponse 반환</text>
+<path d="M331,1080 Q352,1080 352,1093 Q352,1106 331,1106" fill="none" stroke="#2d3142" stroke-width="1.1" marker-end="url(#fa)"/><text x="356" y="1096" font-size="9" fill="#4a4f6a">Pydantic JSON 직렬화</text>
+<path d="M331,1118 Q352,1118 352,1131 Q352,1144 331,1144" fill="none" stroke="#2d3142" stroke-width="1.1" marker-end="url(#fa)"/><text x="356" y="1134" font-size="9" fill="#4a4f6a">POST /api/v1/log/theme-history</text>
+<line x1="323" y1="1158" x2="239" y2="1158" stroke="#2d3142" stroke-width="1.1" stroke-dasharray="4 3" marker-end="url(#fa)"/><text x="281" y="1154" text-anchor="middle" font-size="9" fill="#2d3142">HTTP 200 {RecommendationResponse (final_artworks)}</text>
+<path d="M235,1170 Q256,1170 256,1183 Q256,1196 235,1196" fill="none" stroke="#2d3142" stroke-width="1.1" marker-end="url(#fa)"/><text x="260" y="1186" font-size="9" fill="#4a4f6a">3DGS 갤러리 슬롯 렌더링</text>
+<line x1="227" y1="1210" x2="53" y2="1210" stroke="#2d3142" stroke-width="1.1" stroke-dasharray="4 3" marker-end="url(#fa)"/><text x="140" y="1206" text-anchor="middle" font-size="9" fill="#2d3142">재배치된 3DGS 갤러리 표시</text>
+<rect x="4" y="1226" width="658" height="12" rx="2" fill="#fdf0ec"/><text x="8" y="1236" font-size="8.5" fill="#c0392b" font-family="JetBrains Mono,monospace">ALT  오류 처리</text>
+<rect x="4" y="1240" width="658" height="244" rx="4" fill="none" stroke="#c0392b" stroke-width=".8" stroke-dasharray="5 3"/>
+<line x1="235" y1="1256" x2="319" y2="1256" stroke="#c0392b" stroke-width="1.1" marker-end="url(#fa)"/><text x="277" y="1252" text-anchor="middle" font-size="9" fill="#c0392b">POST /api/v1/curation/select</text>
+<path d="M331,1266 Q352,1266 352,1279 Q352,1292 331,1292" fill="none" stroke="#c0392b" stroke-width="1.1" marker-end="url(#fa)"/><text x="356" y="1282" font-size="9" fill="#c0392b">오류 감지 (try-except)</text>
+<path d="M331,1304 Q352,1304 352,1317 Q352,1330 331,1330" fill="none" stroke="#c0392b" stroke-width="1.1" marker-end="url(#fa)"/><text x="356" y="1320" font-size="9" fill="#c0392b">Fallback: Default 배치 로드</text>
+<line x1="331" y1="1344" x2="607" y2="1344" stroke="#c0392b" stroke-width="1.1" stroke-dasharray="3 3" marker-end="url(#fa)"/><text x="469" y="1340" text-anchor="middle" font-size="9" fill="#c0392b">GET /api/v1/artwork/default</text>
+<line x1="607" y1="1360" x2="335" y2="1360" stroke="#c0392b" stroke-width="1.1" stroke-dasharray="4 3" marker-end="url(#fa)"/><text x="471" y="1356" text-anchor="middle" font-size="9" fill="#c0392b">Default layout_id 반환</text>
+<line x1="323" y1="1376" x2="239" y2="1376" stroke="#c0392b" stroke-width="1.1" stroke-dasharray="4 3" marker-end="url(#fa)"/><text x="281" y="1372" text-anchor="middle" font-size="9" fill="#c0392b">HTTP 200 (status: fallback)</text>
+<path d="M235,1388 Q256,1388 256,1401 Q256,1414 235,1414" fill="none" stroke="#c0392b" stroke-width="1.1" marker-end="url(#fa)"/><text x="260" y="1404" font-size="9" fill="#c0392b">오류 모달 표시</text>
+<line x1="227" y1="1428" x2="53" y2="1428" stroke="#c0392b" stroke-width="1.1" stroke-dasharray="4 3" marker-end="url(#fa)"/><text x="140" y="1424" text-anchor="middle" font-size="9" fill="#c0392b">기본 전시로 자동 입장</text>
+<rect x="4" y="1518" width="658" height="80" rx="4" fill="#f5f6fb" stroke="#dde0ee" stroke-width=".8"/>
+<text x="12" y="1526" font-size="10" fill="#0f1117" font-weight="600" font-family="JetBrains Mono,monospace">범례</text>
+<line x1="12" y1="1540" x2="56" y2="1540" stroke="#2d3142" stroke-width="1.1" marker-end="url(#fa)"/><text x="62" y="1544" font-size="9" fill="#4a4f6a">동기 요청 (메서드 호출 / HTTP)</text>
+<line x1="12" y1="1558" x2="56" y2="1558" stroke="#2d3142" stroke-width="1.1" stroke-dasharray="4 3" marker-end="url(#fa)"/><text x="62" y="1562" font-size="9" fill="#4a4f6a">응답 반환 (return / HTTP response)</text>
+<path d="M12,1570 Q28,1570 28,1581 Q28,1592 12,1592" fill="none" stroke="#2d3142" stroke-width="1.1" marker-end="url(#fa)"/><text x="34" y="1586" font-size="9" fill="#4a4f6a">자기 호출 (내부 처리)</text>
+<rect x="340" y="1528" width="10" height="10" rx="2" fill="#185fa5" opacity=".5"/><text x="356" y="1537" font-size="9" fill="#4a4f6a">Frontend</text>
+<rect x="340" y="1546" width="10" height="10" rx="2" fill="#0f6e56" opacity=".5"/><text x="356" y="1555" font-size="9" fill="#4a4f6a">Backend</text>
+<rect x="340" y="1564" width="10" height="10" rx="2" fill="#534ab7" opacity=".5"/><text x="356" y="1573" font-size="9" fill="#4a4f6a">DB Layer</text>
+<rect x="450" y="1528" width="10" height="10" rx="2" fill="#c0392b" opacity=".5"/><text x="466" y="1537" font-size="9" fill="#4a4f6a">대안 흐름 (Fallback)</text>
 </svg>`;
 
 // ══ INIT ══
